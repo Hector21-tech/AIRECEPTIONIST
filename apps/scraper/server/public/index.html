@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Scraper Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .actions {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .actions h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #34495e;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .restaurants {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .restaurants h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #34495e;
+        }
+
+        .restaurant-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .restaurant-card {
+            border: 1px solid #ecf0f1;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .restaurant-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .restaurant-header {
+            margin-bottom: 15px;
+        }
+
+        .restaurant-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .restaurant-location {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .restaurant-info {
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #95a5a6;
+        }
+
+        .restaurant-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #95a5a6;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍽️ Restaurant Scraper Admin</h1>
+            <p class="subtitle">Hantera scraping och synkning till ElevenLabs Voice AI</p>
+        </header>
+
+        <div class="actions">
+            <h2>Global Actions</h2>
+            <div class="button-group">
+                <button class="btn-primary" onclick="scrapeAll()">🕷️ Scrape All Restaurants</button>
+                <button class="btn-success" onclick="syncAllToElevenLabs()">☁️ Sync All to ElevenLabs</button>
+                <button class="btn-warning" onclick="loadRestaurants()">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <div id="message"></div>
+
+        <div class="restaurants">
+            <h2>Restaurants</h2>
+            <div id="restaurants-list" class="loading">
+                Loading restaurants...
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for viewing reports -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="modal-title"></span>
+                <button onclick="closeModal()" style="float: right;">✕</button>
+            </div>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        async function loadRestaurants() {
+            const listEl = document.getElementById('restaurants-list');
+            listEl.innerHTML = '<div class="loading">Loading restaurants...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/restaurants`);
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+
+                if (result.data.length === 0) {
+                    listEl.innerHTML = '<p>No restaurants found. Run multi-init to create sample data.</p>';
+                    return;
+                }
+
+                listEl.innerHTML = `
+                    <div class="restaurant-grid">
+                        ${result.data.map(restaurant => `
+                            <div class="restaurant-card">
+                                <div class="restaurant-header">
+                                    <div class="restaurant-name">${restaurant.name}</div>
+                                    <div class="restaurant-location">📍 ${restaurant.city}</div>
+                                </div>
+                                <div class="restaurant-info">
+                                    <div>Brand: ${restaurant.brand || 'N/A'}</div>
+                                    <div>Updated: ${new Date(restaurant.updated_at).toLocaleString('sv-SE')}</div>
+                                </div>
+                                <div class="restaurant-actions">
+                                    <button class="btn-primary btn-small" onclick="scrapeRestaurant('${restaurant.slug}')">
+                                        🕷️ Scrape
+                                    </button>
+                                    <button class="btn-success btn-small" onclick="syncToElevenLabs('${restaurant.slug}')">
+                                        ☁️ Sync
+                                    </button>
+                                    <button class="btn-warning btn-small" onclick="viewKnowledge('${restaurant.slug}')">
+                                        📚 Knowledge
+                                    </button>
+                                    <button class="btn-warning btn-small" onclick="viewReport('${restaurant.slug}')">
+                                        📄 Report
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                showError(`Failed to load restaurants: ${error.message}`);
+                listEl.innerHTML = `<div class="error">Failed to load restaurants: ${error.message}</div>`;
+            }
+        }
+
+        async function scrapeRestaurant(slug) {
+            try {
+                showMessage(`Starting scrape for ${slug}...`, 'loading');
+                const response = await fetch(`${API_BASE}/restaurants/${slug}/scrape`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ syncToElevenLabs: true })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage(`✅ Scrape started for ${slug}`, 'success');
+                } else {
+                    showError(`Failed to scrape: ${result.error}`);
+                }
+            } catch (error) {
+                showError(`Scrape failed: ${error.message}`);
+            }
+        }
+
+        async function scrapeAll() {
+            try {
+                showMessage('Starting scrape for all restaurants...', 'loading');
+                const response = await fetch(`${API_BASE}/scrape-all`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ syncToElevenLabs: true })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('✅ Scrape started for all restaurants', 'success');
+                } else {
+                    showError(`Failed to start scrape: ${result.error}`);
+                }
+            } catch (error) {
+                showError(`Scrape failed: ${error.message}`);
+            }
+        }
+
+        async function syncToElevenLabs(slug) {
+            try {
+                showMessage(`Syncing ${slug} to ElevenLabs...`, 'loading');
+                const response = await fetch(`${API_BASE}/restaurants/${slug}/sync-elevenlabs`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage(`✅ Successfully synced ${slug} to ElevenLabs`, 'success');
+                } else {
+                    showError(`Sync failed: ${result.error}`);
+                }
+            } catch (error) {
+                showError(`Sync failed: ${error.message}`);
+            }
+        }
+
+        async function syncAllToElevenLabs() {
+            try {
+                showMessage('Syncing all restaurants to ElevenLabs...', 'loading');
+                const response = await fetch(`${API_BASE}/sync-elevenlabs-all`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage(`✅ ${result.message}`, 'success');
+                } else {
+                    showError(`Sync failed: ${result.error}`);
+                }
+            } catch (error) {
+                showError(`Sync failed: ${error.message}`);
+            }
+        }
+
+        async function viewKnowledge(slug) {
+            try {
+                const response = await fetch(`${API_BASE}/restaurants/${slug}/knowledge`);
+                const result = await response.json();
+
+                if (result.success) {
+                    showModal(`Knowledge Base: ${slug}`, `
+                        <p>Total items: ${result.total}</p>
+                        <pre>${JSON.stringify(result.data, null, 2)}</pre>
+                    `);
+                }
+            } catch (error) {
+                showError(`Failed to load knowledge: ${error.message}`);
+            }
+        }
+
+        async function viewReport(slug) {
+            try {
+                const response = await fetch(`${API_BASE}/restaurants/${slug}/report`);
+                const text = await response.text();
+
+                showModal(`Report: ${slug}`, `<pre>${text}</pre>`);
+            } catch (error) {
+                showError(`Failed to load report: ${error.message}`);
+            }
+        }
+
+        function showMessage(message, type = 'success') {
+            const messageEl = document.getElementById('message');
+            messageEl.className = type;
+            messageEl.textContent = message;
+            setTimeout(() => {
+                messageEl.textContent = '';
+                messageEl.className = '';
+            }, 5000);
+        }
+
+        function showError(message) {
+            showMessage(message, 'error');
+        }
+
+        function showModal(title, content) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').innerHTML = content;
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        // Load restaurants on page load
+        loadRestaurants();
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadRestaurants, 30000);
+    </script>
+</body>
+</html>

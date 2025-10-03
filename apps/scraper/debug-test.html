@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Test - Torstens Scraper</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 5px; font-size: 16px; }
+        #results { background: #e8f5e8; padding: 20px; margin-top: 20px; border-radius: 5px; }
+        #progress { background: #e8e8f5; padding: 20px; margin-top: 20px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Torstens Scraper Debug Test</h1>
+
+    <div class="debug">
+        <h3>1. Test Server Connection</h3>
+        <button onclick="testPresets()">Test /api/presets</button>
+        <button onclick="testScrape()">Test /api/scrape</button>
+    </div>
+
+    <div class="debug">
+        <h3>2. Test WebSocket</h3>
+        <button onclick="connectSocket()">Connect to Socket.IO</button>
+        <button onclick="disconnectSocket()">Disconnect Socket</button>
+        <div>Status: <span id="socketStatus">Not connected</span></div>
+    </div>
+
+    <div class="debug">
+        <h3>3. Console Log</h3>
+        <div>Öppna Developer Tools (F12) för att se console meddelanden</div>
+    </div>
+
+    <div id="results" style="display: none;">
+        <h3>Results:</h3>
+        <pre id="resultContent"></pre>
+    </div>
+
+    <div id="progress" style="display: none;">
+        <h3>Progress Messages:</h3>
+        <div id="progressContent"></div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script>
+        let socket = null;
+
+        console.log('🚀 Debug test loaded');
+
+        // Test functions
+        function testPresets() {
+            console.log('Testing /api/presets...');
+            fetch('/api/presets')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Presets result:', data);
+                    showResult('Presets API: SUCCESS\n' + JSON.stringify(data, null, 2));
+                })
+                .catch(error => {
+                    console.error('Presets error:', error);
+                    showResult('Presets API: ERROR\n' + error.toString());
+                });
+        }
+
+        function testScrape() {
+            console.log('Testing /api/scrape...');
+            const testData = {
+                urls: ['https://torstens.se/angelholm/'],
+                location: 'Debug Test',
+                type: 'full'
+            };
+
+            fetch('/api/scrape', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(testData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Scrape result:', data);
+                showResult('Scrape API: SUCCESS\n' + JSON.stringify(data, null, 2));
+            })
+            .catch(error => {
+                console.error('Scrape error:', error);
+                showResult('Scrape API: ERROR\n' + error.toString());
+            });
+        }
+
+        function connectSocket() {
+            console.log('Connecting to Socket.IO...');
+            socket = io();
+
+            socket.on('connect', () => {
+                console.log('Socket connected:', socket.id);
+                document.getElementById('socketStatus').textContent = 'Connected: ' + socket.id;
+                showProgress('Connected to WebSocket: ' + socket.id);
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Socket disconnected');
+                document.getElementById('socketStatus').textContent = 'Disconnected';
+                showProgress('Disconnected from WebSocket');
+            });
+
+            socket.on('progress', (data) => {
+                console.log('Progress received:', data);
+                showProgress('Progress: ' + data.message + ' (status: ' + data.status + ')');
+            });
+
+            socket.on('error', (error) => {
+                console.error('Socket error:', error);
+                showProgress('Socket error: ' + error.toString());
+            });
+        }
+
+        function disconnectSocket() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+                document.getElementById('socketStatus').textContent = 'Not connected';
+            }
+        }
+
+        function showResult(text) {
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('resultContent').textContent = text;
+        }
+
+        function showProgress(message) {
+            const progressDiv = document.getElementById('progress');
+            const contentDiv = document.getElementById('progressContent');
+
+            progressDiv.style.display = 'block';
+
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = new Date().toLocaleTimeString() + ': ' + message;
+            messageDiv.style.marginBottom = '5px';
+            contentDiv.appendChild(messageDiv);
+        }
+
+        // Auto-connect on load
+        connectSocket();
+    </script>
+</body>
+</html>

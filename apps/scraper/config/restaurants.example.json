@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Torstens",
+    "location": "Ängelholm",
+    "knowledgeFile": "./output/knowledge.jsonl",
+    "outputDir": "./output"
+  },
+  {
+    "name": "Torstens",
+    "location": "Helsingborg",
+    "knowledgeFile": "./output/torstens-helsingborg/knowledge.jsonl",
+    "outputDir": "./output"
+  },
+  {
+    "name": "Torstens",
+    "location": "Väla",
+    "knowledgeFile": "./output/torstens-vala/knowledge.jsonl",
+    "outputDir": "./output"
+  }
+]

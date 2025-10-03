@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Restaurant Scraper - Backup Interface</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        input[type="url"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input[type="url"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #5a6fd8;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 50px;
+        }
+        .result.loading {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        .result.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .result.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .stat {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ Restaurant Voice AI Scraper</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 30px;">
+            Backup Interface - Ange en restaurang-URL för att automatiskt skapa Voice AI-data
+        </p>
+
+        <form id="scraperForm">
+            <div class="form-group">
+                <label for="url">🌐 Restaurant URL:</label>
+                <input type="url" id="url" name="url" placeholder="https://restaurangpavo.se/" required>
+            </div>
+
+            <button type="submit" id="scrapeBtn">🚀 Scrapa Restaurang</button>
+        </form>
+
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('scraperForm');
+        const btn = document.getElementById('scrapeBtn');
+        const result = document.getElementById('result');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const url = document.getElementById('url').value;
+            if (!url) return;
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Scrapar...';
+
+            result.style.display = 'block';
+            result.className = 'result loading';
+            result.innerHTML = '⏳ Scrapar restaurang, detta kan ta några sekunder...';
+
+            try {
+                const response = await fetch('http://localhost:3008/api/scrape', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        urls: [url],
+                        location: 'custom',
+                        type: 'all'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        <h3>✅ Scraping Slutfört!</h3>
+                        <p><strong>Restaurang:</strong> ${data.restaurant.name}</p>
+                        <p><strong>Mapp skapad:</strong> <code>${data.restaurant.directory}</code></p>
+
+                        <div class="stats">
+                            <div class="stat">
+                                <div class="stat-number">${data.stats.knowledge}</div>
+                                <div class="stat-label">FAQ:s</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-number">${data.stats.words}</div>
+                                <div class="stat-label">Ord</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-number">${data.stats.contacts}</div>
+                                <div class="stat-label">Kontakter</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-number">${data.stats.menus}</div>
+                                <div class="stat-label">Menyrätter</div>
+                            </div>
+                        </div>
+
+                        <h4>📁 Filer som skapades:</h4>
+                        <ul>
+                            <li><code>info.json</code> - Restauranginformation</li>
+                            <li><code>knowledge.jsonl</code> - Voice AI kunskapsbas</li>
+                            <li><code>report.txt</code> - Detaljerad rapport</li>
+                        </ul>
+                    `;
+                } else {
+                    result.className = 'result error';
+                    result.innerHTML = `❌ Fel: ${data.error || 'Okänt fel uppstod'}`;
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.innerHTML = `❌ Anslutningsfel: ${error.message}<br><br>
+                    Kontrollera att API-servern kör på http://localhost:3008`;
+            }
+
+            btn.disabled = false;
+            btn.textContent = '🚀 Scrapa Restaurang';
+        });
+    </script>
+</body>
+</html>

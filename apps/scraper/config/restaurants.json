@@ -1,0 +1,90 @@
+[
+  {
+    "slug": "torstens-angelholm",
+    "name": "Torstens",
+    "brand": "Torstens",
+    "city": "Ängelholm",
+    "baseUrl": "https://torstens.se",
+    "sitemapPaths": [
+      "/sitemap.xml",
+      "/sitemap_index.xml"
+    ],
+    "specialConfig": {
+      "menuKeywords": [
+        "meny",
+        "rätter",
+        "lunch",
+        "dagens"
+      ],
+      "validation": {
+        "requireMenu": true,
+        "requireHours": true,
+        "requireContact": true,
+        "minMenuItems": 5
+      }
+    }
+  },
+  {
+    "slug": "torstens-vala",
+    "name": "Torstens Väla",
+    "brand": "Torstens",
+    "city": "Helsingborg",
+    "baseUrl": "https://torstens.se/vala",
+    "sitemapPaths": [
+      "/sitemap.xml"
+    ],
+    "specialConfig": {
+      "menuKeywords": [
+        "meny",
+        "menu",
+        "rätter",
+        "dishes",
+        "mat",
+        "food",
+        "dagens",
+        "daily",
+        "lunch",
+        "dinner",
+        "middag",
+        "kött",
+        "meat",
+        "fisk",
+        "fish",
+        "vegetariskt",
+        "vegetarian",
+        "dessert",
+        "desserts",
+        "efterrätt",
+        "dryck",
+        "drinks",
+        "specialiteter",
+        "specialties",
+        "husmansköst",
+        "traditionell"
+      ],
+      "validation": {
+        "requireMenu": true,
+        "requireHours": true,
+        "requireContact": true,
+        "minMenuItems": 3
+      }
+    }
+  },
+  {
+    "slug": "mavi-stockholm",
+    "name": "Restaurang Mavi",
+    "brand": "Mavi",
+    "city": "Stockholm",
+    "baseUrl": "https://restaurangmavi.se",
+    "sitemapPaths": ["/sitemap.xml"],
+    "specialConfig": {
+      "menuKeywords": ["meny", "menu", "mat", "rätter", "kött", "kyckling"],
+      "validation": {
+        "requireMenu": true,
+        "requireHours": true,
+        "requireContact": true,
+        "minMenuItems": 3
+      }
+    }
+  }
+]

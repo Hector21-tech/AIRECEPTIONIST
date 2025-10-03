@@ -1,0 +1,138 @@
+{
+  "name": "Scheduled Restaurant Scraping",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger (Daily 6 AM)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://your-scraper-api.com/api/scrape-all",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $credentials.apiKey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "syncToElevenLabs",
+              "value": "=true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Trigger Scrape All",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.success }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Check Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "channel": "#restaurant-updates",
+        "text": "=✅ Scheduled scrape triggered successfully\n\n• Restaurants: {{ $json.restaurants.length }}\n• Message: {{ $json.message }}\n• Time: {{ new Date().toISOString() }}",
+        "otherOptions": {}
+      },
+      "name": "Notify Success",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "channel": "#restaurant-alerts",
+        "text": "=❌ Scheduled scrape failed\n\n• Error: {{ $json.error }}\n• Message: {{ $json.message }}\n• Time: {{ new Date().toISOString() }}",
+        "otherOptions": {}
+      },
+      "name": "Alert Failure",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [850, 400]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger (Daily 6 AM)": {
+      "main": [
+        [
+          {
+            "node": "Trigger Scrape All",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger Scrape All": {
+      "main": [
+        [
+          {
+            "node": "Check Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Success": {
+      "main": [
+        [
+          {
+            "node": "Notify Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alert Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "id": 2,
+  "meta": {
+    "instanceId": "your-n8n-instance-id"
+  },
+  "tags": []
+}

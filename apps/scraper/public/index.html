@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍽️ Torstens Voice AI Scraper - ElevenLabs Ready</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 40px;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+        }
+
+        .results-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .quick-action {
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #e1e8ed;
+        }
+
+        .quick-action:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .quick-action h4 {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .quick-action p {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 120px;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #495057;
+            border: 2px solid #e1e8ed;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .results h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .output-container {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #dee2e6;
+        }
+
+        .output-tabs {
+            display: flex;
+            background: #f8f9fa;
+        }
+
+        .output-tab {
+            flex: 1;
+            padding: 10px 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .output-tab.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .output-content {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .output-content pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .faq-item {
+            background: white;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .faq-answer {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            button {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ Restaurant Voice AI Scraper</h1>
+            <p>Scrapa restaurangwebbsidor och generera ElevenLabs-redo Voice AI data</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Input Section -->
+            <div class="input-section">
+                <h3>📝 Scrapa Webbsida</h3>
+
+
+                <!-- API Status -->
+                <div class="api-status" style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px; font-size: 14px;">
+                    <strong>API Status:</strong> <span id="api-status">Ansluter...</span>
+                    <button type="button" onclick="testApiConnection()" style="margin-left: 10px; padding: 5px 10px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer;">Test API</button>
+                </div>
+
+                <!-- URL Input Form -->
+                <form id="scraperForm">
+                    <div class="form-group">
+                        <label for="url">🌐 URL att scrapa:</label>
+                        <input type="url" id="url" placeholder="https://example-restaurant.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="extractionType">🎯 Vad ska extraheras:</label>
+                        <select id="extractionType">
+                            <option value="all">📋 Allt (Full extraktion)</option>
+                        </select>
+                    </div>
+
+                    <div class="buttons">
+                        <button type="submit" class="btn-primary">🚀 Scrapa Nu</button>
+                        <button type="button" class="btn-secondary" onclick="clearResults()">🗑️ Rensa</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section">
+                <h3>📊 Resultat</h3>
+
+                <!-- System Status -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="statPages">-</div>
+                        <div class="stat-label">Sidor</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statFaqs">-</div>
+                        <div class="stat-label">FAQ:s</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statWords">-</div>
+                        <div class="stat-label">Ord</div>
+                    </div>
+                </div>
+
+                <!-- Results Display -->
+                <div id="results" class="results">
+                    <div id="status" class="status loading">Väntar på scraping...</div>
+
+                    <!-- Progress section -->
+                    <div id="progress-container" style="display: none; margin-top: 20px;">
+                        <div style="background: white; border-radius: 10px; padding: 20px; border: 1px solid #dee2e6;">
+                            <h5>📋 Progress</h5>
+                            <div id="progress-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="output-container">
+                        <div class="output-tabs">
+                            <button class="output-tab active" onclick="switchTab('voice-ai')">🎤 Voice AI</button>
+                            <button class="output-tab" onclick="switchTab('raw')">📄 Raw Data</button>
+                            <button class="output-tab" onclick="switchTab('json')">🔧 JSON</button>
+                        </div>
+                        <div class="output-content">
+                            <div id="output-voice-ai" class="output-view"></div>
+                            <div id="output-raw" class="output-view" style="display: none;">
+                                <pre id="output-raw-content"></pre>
+                            </div>
+                            <div id="output-json" class="output-view" style="display: none;">
+                                <pre id="output-json-content"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let currentApiPort = 3008; // Start with port 3008
+        let socket = null;
+
+        // Auto-detect API port and connect Socket.IO
+        async function detectApiPort() {
+            console.log('🔍 Starting API port detection...');
+            setStatus('loading', 'Ansluter till API...');
+
+            const ports = [3008, 3007, 3006, 3001, 3002, 3003, 3004, 3009, 3010];
+            for (const port of ports) {
+                try {
+                    console.log(`Testing port ${port}...`);
+                    const response = await fetch(`http://localhost:${port}/status`);
+                    if (response.ok) {
+                        currentApiPort = port;
+                        console.log(`✅ API detected on port ${port}`);
+
+                        // Update UI to show connection status
+                        setStatus('success', `Ansluten till API (port ${port})`);
+                        document.getElementById('api-status').textContent = `Port: ${port}`;
+
+                        // Connect Socket.IO for real-time progress
+                        if (socket) socket.disconnect();
+                        console.log(`🔌 Connecting Socket.IO to port ${port}...`);
+                        socket = io(`http://localhost:${port}`);
+
+                        socket.on('connect', () => {
+                            console.log('✅ Socket.IO connected');
+                        });
+
+                        socket.on('disconnect', () => {
+                            console.log('❌ Socket.IO disconnected');
+                        });
+
+                        socket.on('progress', (data) => {
+                            console.log('📋 Progress update:', data);
+                            updateProgress(data);
+                        });
+
+                        return true;
+                    }
+                } catch (e) {
+                    console.log(`❌ Port ${port} failed:`, e.message);
+                }
+            }
+            console.error('❌ No API port detected');
+            setStatus('error', 'Kan inte ansluta till API - kontrollera att servern kör');
+            return false;
+        }
+
+        // Test API connection function
+        async function testApiConnection() {
+            console.log('🧪 Testing API connection...');
+            setStatus('loading', 'Testar API-anslutning...');
+
+            try {
+                const response = await fetch(`http://localhost:${currentApiPort}/status`);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ API test successful:', data);
+                    setStatus('success', `API fungerar! Service: ${data.service}`);
+                    document.getElementById('api-status').textContent = `Port ${currentApiPort} - Fungerar!`;
+                } else {
+                    console.error('❌ API test failed:', response.status);
+                    setStatus('error', `API test misslyckades: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('❌ API test error:', error);
+                setStatus('error', `API test fel: ${error.message}`);
+                // Try to detect port again
+                await detectApiPort();
+            }
+        }
+
+        // Main form handler
+        document.getElementById('scraperForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const url = document.getElementById('url').value;
+
+            if (!url) {
+                alert('Ange en URL');
+                return;
+            }
+
+            console.log(`🚀 Starting scrape for: ${url}`);
+            showResults();
+            clearProgress(); // Clear old progress messages
+            setStatus('loading', 'Scrapar webbsida...');
+
+            try {
+                console.log(`📡 Making API request to: http://localhost:${currentApiPort}/api/scrape`);
+
+                // Use the scraper with Socket.IO progress updates
+                const response = await fetch(`http://localhost:${currentApiPort}/api/scrape`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        urls: [url],
+                        location: 'custom',
+                        type: 'all'  // Always use 'all' for full extraction
+                    })
+                });
+
+                console.log(`📊 Response status: ${response.status}`);
+                const result = await response.json();
+                console.log('📋 Response data:', result);
+
+                if (response.ok) {
+                    console.log('✅ Scraping successful!');
+                    setStatus('success', `Scraping slutfört! Mapp skapad: ${result.restaurant.directory}`);
+                    displayResults(result, 'voice-ai');
+                    updateStats(result);
+                } else {
+                    console.error('❌ Scraping failed:', result);
+                    setStatus('error', `Scraping misslyckades: ${result.error || 'Okänt fel'}`);
+                    displayResults(result, 'error');
+                }
+
+            } catch (error) {
+                console.error('❌ Network error:', error);
+                setStatus('error', `Anslutningsfel: ${error.message}`);
+                displayResults({ error: error.message }, 'error');
+            }
+        });
+
+        // Display results in different formats
+        function displayResults(data, type) {
+            // Voice AI format
+            displayVoiceAI(data, type);
+
+            // Raw format
+            document.getElementById('output-raw-content').textContent =
+                typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+
+            // JSON format
+            document.getElementById('output-json-content').textContent =
+                JSON.stringify(data, null, 2);
+        }
+
+        // Display Voice AI formatted data
+        function displayVoiceAI(data, type) {
+            const container = document.getElementById('output-voice-ai');
+
+            if (data.knowledgeBase && data.knowledgeBase.length > 0) {
+                // Display FAQ items
+                container.innerHTML = '<h4>🎤 ElevenLabs Voice AI Data:</h4>';
+
+                data.knowledgeBase.forEach(item => {
+                    if (item.type === 'qa') {
+                        const faqDiv = document.createElement('div');
+                        faqDiv.className = 'faq-item';
+                        faqDiv.innerHTML = `
+                            <div class="faq-question">❓ ${item.q}</div>
+                            <div class="faq-answer">💬 ${item.a}</div>
+                        `;
+                        container.appendChild(faqDiv);
+                    } else if (item.type === 'fact') {
+                        const factDiv = document.createElement('div');
+                        factDiv.className = 'faq-item';
+                        factDiv.innerHTML = `
+                            <div class="faq-question">ℹ️ ${item.text}</div>
+                        `;
+                        container.appendChild(factDiv);
+                    }
+                });
+            } else if (data.extractedContent) {
+                // Display extracted content
+                container.innerHTML = `
+                    <h4>📄 Extraherat innehåll:</h4>
+                    <div class="faq-item">
+                        <div class="faq-question">📋 Titel: ${data.extractedContent.title || 'N/A'}</div>
+                        <div class="faq-answer">${data.extractedContent.mainText ?
+                            data.extractedContent.mainText.substring(0, 300) + '...' : 'Inget innehåll'}</div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '<p>Ingen Voice AI data genererad från detta innehåll.</p>';
+            }
+        }
+
+        // Update statistics
+        function updateStats(data) {
+            document.getElementById('statPages').textContent =
+                data.stats?.pages?.toString() || data.crawledPages?.toString() || '1';
+
+            document.getElementById('statFaqs').textContent =
+                data.stats?.knowledge?.toString() || data.knowledgeBase?.length?.toString() || '0';
+
+            document.getElementById('statWords').textContent =
+                data.stats?.words?.toString() || '0';
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.output-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Show/hide content
+            document.querySelectorAll('.output-view').forEach(view => {
+                view.style.display = 'none';
+            });
+            document.getElementById(`output-${tabName}`).style.display = 'block';
+        }
+
+        // Utility functions
+        function showResults() {
+            document.getElementById('results').classList.add('show');
+        }
+
+        function setStatus(type, message) {
+            const statusEl = document.getElementById('status');
+            statusEl.className = `status ${type}`;
+            statusEl.textContent = message;
+        }
+
+        function clearResults() {
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('url').value = '';
+            updateStats({});
+            clearProgress();
+        }
+
+        // Clear progress list
+        function clearProgress() {
+            const progressContainer = document.getElementById('progress-container');
+            const progressList = document.getElementById('progress-list');
+            progressContainer.style.display = 'none';
+            progressList.innerHTML = '';
+        }
+
+        // Update progress from Socket.IO
+        function updateProgress(data) {
+            const progressContainer = document.getElementById('progress-container');
+            const progressList = document.getElementById('progress-list');
+
+            // Show progress container on first update
+            if (data.status === 'starting') {
+                progressContainer.style.display = 'block';
+                progressList.innerHTML = '';
+            }
+
+            // Add new progress message
+            const progressItem = document.createElement('div');
+            progressItem.style.cssText = 'padding: 5px 0; color: #666; font-size: 14px;';
+
+            let emoji = '🔄';
+            if (data.status === 'completed') emoji = '✅';
+            else if (data.status === 'error') emoji = '❌';
+            else if (data.status === 'crawling') emoji = '🕷️';
+            else if (data.status === 'extracting') emoji = '🔍';
+            else if (data.status === 'generating') emoji = '🧠';
+
+            progressItem.innerHTML = `${emoji} ${data.message}`;
+            progressList.appendChild(progressItem);
+
+            // Auto-scroll to bottom
+            progressList.scrollTop = progressList.scrollHeight;
+
+            // Hide progress after completion (with delay)
+            if (data.status === 'completed' || data.status === 'error') {
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', async () => {
+            await detectApiPort();
+            setStatus('success', 'Redo att scrapa!');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+{
+  "name": "Scraper Webhook → Database & Notifications",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "scraper-events",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook Receiver",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "scraper_events",
+        "columns": "event_type, tenant_id, restaurant_slug, data, timestamp",
+        "additionalFields": {}
+      },
+      "name": "Store in Database",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [450, 400],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.event }}",
+              "operation": "equals",
+              "value2": "scrape_completed"
+            }
+          ]
+        }
+      },
+      "name": "Is Scrape Completed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.data.elevenlabs_document_id ? 'https://api.elevenlabs.io/v1/convai/conversations/knowledge-base/documents/' + $json.data.elevenlabs_document_id : '' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "xi-api-key",
+              "value": "={{ $credentials.elevenLabsApiKey }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Get ElevenLabs Document",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": "restaurants",
+        "updateKey": "slug",
+        "columns": "last_scraped_at, knowledge_items, elevenlabs_document_id",
+        "additionalFields": {}
+      },
+      "name": "Update Restaurant Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "channel": "={{ '#restaurant-' + $json.tenant_id }}",
+        "text": "=✅ {{ $json.data.restaurant_name }} updated successfully!\n\n📊 Stats:\n• Knowledge items: {{ $json.data.knowledge_items }}\n• Pages: {{ $json.data.pages_scraped }}\n• ElevenLabs: {{ $json.data.synced_to_elevenlabs ? '✅ Synced' : '❌ Not synced' }}\n\n🔗 Document ID: {{ $json.data.elevenlabs_document_id }}",
+        "otherOptions": {}
+      },
+      "name": "Notify Tenant",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.event }}",
+              "operation": "contains",
+              "value2": "failed"
+            }
+          ]
+        }
+      },
+      "name": "Is Failed Event?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 500]
+    },
+    {
+      "parameters": {
+        "to": "admin@restaurant-scraper.com",
+        "subject": "=Scraper Alert: {{ $json.event }} - {{ $json.data.restaurant_name }}",
+        "text": "=Error occurred during {{ $json.event }}:\n\nRestaurant: {{ $json.data.restaurant_name }} ({{ $json.data.restaurant_city }})\nTenant: {{ $json.tenant_name }}\nError: {{ $json.data.error }}\nTimestamp: {{ $json.timestamp }}",
+        "options": {}
+      },
+      "name": "Email Admin",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [850, 500]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"received\": true, \"event\": $json.event, \"processed_at\": new Date().toISOString() } }}"
+      },
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1450, 400]
+    }
+  ],
+  "connections": {
+    "Webhook Receiver": {
+      "main": [
+        [
+          {
+            "node": "Store in Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store in Database": {
+      "main": [
+        [
+          {
+            "node": "Is Scrape Completed?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Failed Event?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Scrape Completed?": {
+      "main": [
+        [
+          {
+            "node": "Get ElevenLabs Document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ElevenLabs Document": {
+      "main": [
+        [
+          {
+            "node": "Update Restaurant Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Restaurant Status": {
+      "main": [
+        [
+          {
+            "node": "Notify Tenant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Tenant": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Failed Event?": {
+      "main": [
+        [
+          {
+            "node": "Email Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Admin": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "id": 3,
+  "meta": {
+    "instanceId": "your-n8n-instance-id"
+  },
+  "tags": ["scraper", "webhooks", "automation"]
+}

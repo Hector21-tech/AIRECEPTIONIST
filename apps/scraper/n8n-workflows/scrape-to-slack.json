@@ -1,0 +1,153 @@
+{
+  "name": "Restaurant Scraper → Slack Notifications",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "restaurant-scraper-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "restaurant-scraper"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.event }}",
+              "operation": "equals",
+              "value2": "scrape_completed"
+            }
+          ]
+        }
+      },
+      "name": "Is Scrape Completed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "channel": "#restaurant-updates",
+        "text": "=✅ Scrape completed for {{ $json.data.restaurant_name }} ({{ $json.data.restaurant_city }})\n\n• Pages scraped: {{ $json.data.pages_scraped }}\n• Knowledge items: {{ $json.data.knowledge_items }}\n• Synced to ElevenLabs: {{ $json.data.synced_to_elevenlabs ? 'Yes' : 'No' }}\n• Tenant: {{ $json.tenant_name }}",
+        "otherOptions": {}
+      },
+      "name": "Send to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.event }}",
+              "operation": "equals",
+              "value2": "scrape_failed"
+            }
+          ]
+        }
+      },
+      "name": "Is Scrape Failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 500]
+    },
+    {
+      "parameters": {
+        "channel": "#restaurant-alerts",
+        "text": "=❌ Scrape failed for {{ $json.data.restaurant_name }} ({{ $json.data.restaurant_city }})\n\n• Error: {{ $json.data.error }}\n• Tenant: {{ $json.tenant_name }}\n• Time: {{ $json.timestamp }}",
+        "otherOptions": {}
+      },
+      "name": "Alert Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [650, 500]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"received\": true, \"event\": $json.event } }}"
+      },
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is Scrape Completed?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is Scrape Failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Scrape Completed?": {
+      "main": [
+        [
+          {
+            "node": "Send to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Scrape Failed?": {
+      "main": [
+        [
+          {
+            "node": "Alert Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Slack": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alert Slack": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "id": 1,
+  "meta": {
+    "instanceId": "your-n8n-instance-id"
+  },
+  "tags": []
+}

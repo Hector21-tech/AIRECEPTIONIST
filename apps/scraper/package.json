@@ -1,0 +1,62 @@
+{
+  "name": "torstens-voice-ai-scraper",
+  "version": "1.0.0",
+  "description": "Web scraper for Torstens restaurant to feed Voice AI with structured data for phone calls",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "web": "node web-scraper.js",
+    "crawl": "node src/crawl.js",
+    "extract": "node src/extract.js",
+    "knowledge": "node src/knowledge-builder.js",
+    "convert-txt": "node src/jsonl-to-txt.js",
+    "full-update": "npm run crawl && npm run extract && npm run knowledge",
+    "full-update-txt": "npm run crawl && npm run extract && npm run knowledge && npm run convert-txt",
+    "health": "node src/index.js health",
+    "status": "node src/index.js status",
+    "api": "node src/index.js api",
+    "dev": "nodemon src/index.js",
+    "multi:init": "node src/index.js multi-init",
+    "multi:scrape-all": "node src/index.js multi-scrape-all",
+    "multi:status": "node src/index.js multi-status",
+    "multi:list": "node src/index.js multi-list",
+    "multi:health": "node src/index.js multi-health",
+    "multi:clean": "node src/index.js multi-clean",
+    "multi:convert-txt": "node src/jsonl-to-txt.js --multi",
+    "auto-scrape": "node src/auto-scraper.js",
+    "server": "node server/index.js",
+    "server:dev": "nodemon server/index.js",
+    "elevenlabs:sync": "node src/elevenlabs-sync.js sync-all",
+    "elevenlabs:list": "node src/elevenlabs-sync.js list",
+    "tenant": "node src/tenant/cli.js",
+    "webhook:queue": "node src/tenant/webhook-queue.js",
+    "db:init": "node -e \"import('./server/database/db.js').then(m => m.initDatabase())\"",
+    "db:reset": "node -e \"import('./server/database/db.js').then(m => m.resetDatabase())\""
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "better-sqlite3": "^11.7.0",
+    "cheerio": "^1.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "fast-xml-parser": "^4.4.1",
+    "node-cron": "^3.0.3",
+    "playwright": "^1.47.2",
+    "slugify": "^1.6.6",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  },
+  "keywords": [
+    "scraping",
+    "voice-ai",
+    "restaurant",
+    "torstens",
+    "customer-service"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

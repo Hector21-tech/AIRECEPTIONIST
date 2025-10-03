@@ -1,0 +1,16 @@
+GitHub Setup Instructions:
+
+1. Create repository on github.com:
+   - Name: ai-receptionist-admin
+   - Don't check "Initialize with README"
+
+2. After creating, run these commands (replace YOUR-USERNAME):
+
+git remote add origin https://github.com/YOUR-USERNAME/ai-receptionist-admin.git
+git branch -M main
+git push -u origin main
+
+3. Your repository will be available at:
+https://github.com/YOUR-USERNAME/ai-receptionist-admin
+
+After pushing, you can deploy to Vercel by importing this repository.

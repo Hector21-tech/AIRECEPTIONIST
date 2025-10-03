@@ -1,0 +1,25 @@
+{
+  "name": "aivoice",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/web",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:scraper": "npm run dev --workspace=apps/scraper",
+    "build": "npm run build --workspaces",
+    "build:web": "npm run build --workspace=apps/web",
+    "build:scraper": "npm run build --workspace=apps/scraper",
+    "start:web": "npm run start --workspace=apps/web",
+    "start:scraper": "npm run start --workspace=apps/scraper",
+    "db:generate": "npm run db:generate --workspace=packages/database",
+    "db:migrate": "npm run db:migrate --workspace=packages/database",
+    "db:studio": "npm run db:studio --workspace=packages/database"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
