@@ -1,16 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+// Allow build without env vars - will be available at runtime
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Create client only if credentials are available
+export const supabase = (supabaseUrl && supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null as any;
 
 // Admin client for server-side operations (file uploads, etc.)
 // Only create admin client on server-side
 export const getSupabaseAdmin = () => {
   if (typeof window !== 'undefined') {
     throw new Error('Admin client should only be used on server-side');
+  }
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    throw new Error('Supabase credentials not configured');
   }
   return createClient(supabaseUrl, supabaseServiceRoleKey, {
     auth: {
@@ -54,6 +61,10 @@ export const uploadAudioFile = async (
 };
 
 export const getAudioUrl = (fileName: string): string => {
+  if (!supabase) {
+    return '';
+  }
+  
   const { data } = supabase.storage
     .from('call-recordings')
     .getPublicUrl(fileName);
