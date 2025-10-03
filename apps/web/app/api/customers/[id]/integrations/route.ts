@@ -77,7 +77,6 @@ export async function POST(
         status: webhookResult.status === 'active' ? 'active' : 'inactive',
         config: JSON.stringify({
           ...config,
-          webhookId: webhookResult.webhookId || null,
           status: webhookResult.status,
           message: webhookResult.message
         }),
