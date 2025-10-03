@@ -212,7 +212,8 @@ function CustomerDetails({ customerId }: { customerId: number }) {
         contactPhone: customer.contactPhone || '',
         contactEmail: customer.contactEmail || '',
         twilioNumber: customer.twilioNumber || '',
-        agentId: customer.agentId || ''
+        agentId: customer.agentId || '',
+        elevenlabsApiKey: customer.elevenlabsApiKey || ''
       });
     }
     setIsEditing(!isEditing);
