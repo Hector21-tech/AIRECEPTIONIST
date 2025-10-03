@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
+    "build": "echo 'Scraper has no build step - deployed to Railway'",
     "start": "node src/index.js",
     "web": "node web-scraper.js",
     "crawl": "node src/crawl.js",
