@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, Play, Pause, Edit, Trash2, Workflow, GitBranch, Clock, Activity, Phone, MessageSquare, Target, Users, Settings, ExternalLink, Copy, CheckCircle, X } from 'lucide-react';
+import { ArrowLeft, Plus, Play, Pause, Edit, Trash2, Workflow, GitBranch, Clock, Activity, Phone, MessageSquare, Target, Users, Settings, ExternalLink, Copy, CheckCircle, X, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { use, useState } from 'react';
 import useSWR from 'swr';
