@@ -73,7 +73,6 @@ export async function POST(
       const integration = await db.insert(integrations).values({
         customerId: customerId,
         type: type,
-        name: name,
         method: method,
         status: webhookResult.status === 'active' ? 'active' : 'inactive',
         config: JSON.stringify({
@@ -99,7 +98,6 @@ export async function POST(
     const integration = await db.insert(integrations).values({
       customerId: customerId,
       type: type,
-      name: name,
       method: method,
       status: 'inactive', // Default to inactive for manual integrations
       config: JSON.stringify(config),
