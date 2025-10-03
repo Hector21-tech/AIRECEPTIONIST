@@ -43,7 +43,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Dubletter rensade framgångsrikt',
-      deletedCount: result.rowCount || 0
     });
 
   } catch (error) {
