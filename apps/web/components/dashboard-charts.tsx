@@ -140,7 +140,7 @@ export default function DashboardCharts({ data, dateRange }: DashboardChartsProp
       // Generate 24 hours (0-23) with data from hourlyStats for the specific day
       return Array.from({ length: 24 }, (_, hour) => {
         const hourData = data.hourlyStats.find(h =>
-          h.hour === hour && h.date === selectedDate
+          h.hour === hour
         );
 
         if (hour <= 2) { // Log first few hours for debugging
