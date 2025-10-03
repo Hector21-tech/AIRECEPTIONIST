@@ -165,7 +165,7 @@ export default function DashboardCharts({ data, dateRange }: DashboardChartsProp
       const dayData = {
         date: selectedDate,
         cost: chartData.reduce((sum, item) => sum + (item.cost || 0), 0),
-        revenue: chartData.reduce((sum, item) => sum + (item.revenue || 0), 0)
+        revenue: chartData.reduce((sum, item) => sum + 0, 0)
       };
       return [dayData];
     } else {
