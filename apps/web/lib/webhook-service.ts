@@ -100,7 +100,7 @@ export async function createElevenlabsWebhook(config: WebhookConfig & { elevenla
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        name: `${config.customerName || 'Customer'} Webhook`,
+        name: `Customer ${config.customerId} Webhook`,
         url: webhookUrl,
         webhook_type: 'agent_webhook',
         authentication_method: 'hmac_sha256',
@@ -154,7 +154,7 @@ export async function createElevenlabsWebhook(config: WebhookConfig & { elevenla
       );
 
       if (!workspaceResponse.ok) {
-        throw new Error(`ElevenLabs Agent webhook fel: ${response.status} ${response.statusText}`);
+        throw new Error(`ElevenLabs Agent webhook fel: ${workspaceResponse.status} ${workspaceResponse.statusText}`);
       }
     }
 

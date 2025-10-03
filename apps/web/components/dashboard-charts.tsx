@@ -178,7 +178,7 @@ export default function DashboardCharts({ data, dateRange }: DashboardChartsProp
     if (viewMode === 'hourly') {
       // Use the same filtered hourly data as main chart
       return chartData.map(item => ({
-        hour: item.hour,
+        hour: (item as any).hour,
         calls: item.calls
       }));
     } else {
@@ -209,7 +209,7 @@ export default function DashboardCharts({ data, dateRange }: DashboardChartsProp
   const getDayTotal = () => {
     if (viewMode !== 'hourly') return null;
 
-    const total = chartData.reduce((sum, item) => sum + (item[dataKey] || 0), 0);
+    const total = chartData.reduce((sum, item) => sum + ((item as any)[dataKey] || 0), 0);
     return format(total);
   };
 

@@ -14,7 +14,6 @@ async function seedAIReceptionistData() {
       contactPhone: '+46123456789',
       contactEmail: 'torsten@torstens.se',
       twilioNumber: '+46870123456',
-      voiceId: 'elevenlabs_voice_swedish',
       planType: 'Standard (5 kr/min + 5000 kr uppstart)',
     })
     .returning();
