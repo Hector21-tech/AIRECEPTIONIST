@@ -3,6 +3,8 @@ import { db } from '@/lib/db/drizzle';
 import { users, teams, teamMembers, invitations } from '@/lib/db/schema';
 import { eq, isNull } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const user = await getUser();
 

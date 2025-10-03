@@ -4,6 +4,8 @@ import { db } from '@/lib/db/drizzle';
 import { callLogs } from '@/lib/db/schema';
 import { sql } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     // Skip auth for admin cleanup

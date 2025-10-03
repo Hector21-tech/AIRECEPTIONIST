@@ -5,6 +5,8 @@ import { db } from '@/lib/db/drizzle';
 import { customers } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const customers = await getAllCustomers();

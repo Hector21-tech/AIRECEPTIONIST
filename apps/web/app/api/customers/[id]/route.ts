@@ -4,6 +4,8 @@ import { db } from '@/lib/db/drizzle';
 import { customers, callLogs, usage, integrations } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

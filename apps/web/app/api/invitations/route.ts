@@ -3,6 +3,8 @@ import { db } from '@/lib/db/drizzle';
 import { invitations, teams } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const email = searchParams.get('email');

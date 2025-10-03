@@ -4,6 +4,8 @@ import { db } from '@/lib/db/drizzle';
 import { customers } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 // Twilio webhook data types
 interface TwilioCallStatusWebhook {
   CallSid: string;

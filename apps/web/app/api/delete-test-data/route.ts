@@ -4,6 +4,8 @@ import { db } from '@/lib/db/drizzle';
 import { customers, callLogs, usage, integrations } from '@/lib/db/schema';
 import { eq, like } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export async function DELETE(request: NextRequest) {
   try {
     const user = await getUser();

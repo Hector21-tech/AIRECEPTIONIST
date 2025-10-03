@@ -4,6 +4,8 @@ import { db } from '@/lib/db/drizzle';
 import { callLogs } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 // ElevenLabs webhook data types
 interface ElevenLabsTranscriptWebhook {
   call_id: string; // This should match the Twilio CallSid

@@ -4,6 +4,8 @@ import { customers, callLogs, usage } from '@/lib/db/schema';
 import { eq, sql, and, desc } from 'drizzle-orm';
 import crypto from 'crypto';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     console.log('🤖 ELEVENLABS AGENT WEBHOOK MOTTAGEN');

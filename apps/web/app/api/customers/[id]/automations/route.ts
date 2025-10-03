@@ -3,6 +3,8 @@ import { db } from '@/lib/db/drizzle';
 import { automations, customers } from '@/lib/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 // GET - Hämta alla automations för en kund
 export async function GET(
   request: NextRequest,

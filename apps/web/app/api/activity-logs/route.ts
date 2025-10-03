@@ -4,6 +4,8 @@ import { db } from '@/lib/db/drizzle';
 import { callLogs, customers, usage } from '@/lib/db/schema';
 import { desc, eq, and, sql } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getUser();

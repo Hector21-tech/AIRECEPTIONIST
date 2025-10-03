@@ -3,6 +3,8 @@ import { getUser, getTeamForUser } from '@/lib/db/queries';
 import { db } from '@/lib/db/drizzle';
 import { callLogs, customers, usage, teams } from '@/lib/db/schema';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getUser();

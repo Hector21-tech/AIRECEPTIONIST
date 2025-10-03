@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db/drizzle';
 import { sql } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST() {
   try {
     console.log('🔧 Adding audio_data column to call_logs table...');
