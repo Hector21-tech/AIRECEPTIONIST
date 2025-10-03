@@ -150,8 +150,8 @@ export default function DashboardCharts({ data, dateRange }: DashboardChartsProp
         return {
           hour: hour,
           calls: hourData?.calls || 0,
-          cost: hourData?.totalCost || 0,
-          duration: hourData?.totalDuration || 0
+          cost: 0,
+          duration: 0
         };
       });
     }
