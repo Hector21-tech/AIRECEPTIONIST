@@ -56,7 +56,7 @@ export async function POST(
         customerName: customerData.name,
         elevenlabsAgentId: customerData.agentId,
         elevenlabsApiKey: customerData.elevenlabsApiKey || undefined,
-        twilioNumber: customerData.twilioNumber
+        twilioNumber: customerData.twilioNumber || undefined
       });
 
       if (webhookResult.status === 'active') {
