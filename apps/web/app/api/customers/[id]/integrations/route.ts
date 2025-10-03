@@ -53,7 +53,6 @@ export async function POST(
       // Create webhook via ElevenLabs API
       const webhookResult = await createElevenlabsWebhook({
         customerId: customerId,
-        customerName: customerData.name,
         elevenlabsAgentId: customerData.agentId,
         elevenlabsApiKey: customerData.elevenlabsApiKey || undefined,
         twilioNumber: customerData.twilioNumber || undefined
