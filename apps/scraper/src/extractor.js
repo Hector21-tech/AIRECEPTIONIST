@@ -17,8 +17,180 @@ export class ContentExtractor {
     this.logger = new Logger('Extractor');
   }
 
+  /**
+   * Decode HTML entities manually
+   */
+  decodeHTMLEntities(text) {
+    const entities = {
+      '&#8211;': '–',  // en dash
+      '&#8212;': '—',  // em dash
+      '&amp;': '&',
+      '&lt;': '<',
+      '&gt;': '>',
+      '&quot;': '"',
+      '&#39;': "'",
+      '&nbsp;': ' '
+    };
+
+    let decoded = text;
+    for (const [entity, char] of Object.entries(entities)) {
+      decoded = decoded.replace(new RegExp(entity, 'g'), char);
+    }
+    return decoded;
+  }
+
+  /**
+   * Extrahera Schema.org JSON-LD strukturerad data (BÄST!)
+   * Detta ger mest korrekt data om restaurangen
+   */
+  extractSchemaOrg($) {
+    const schemaData = {};
+
+    try {
+      // Hitta alla JSON-LD script tags
+      $('script[type="application/ld+json"]').each((i, elem) => {
+        try {
+          // Get raw content and decode HTML entities
+          let content = $(elem).html() || '';
+          content = this.decodeHTMLEntities(content);
+          const json = JSON.parse(content);
+
+          // Hantera både enskilda objekt, arrays, och @graph strukturer
+          let items = [];
+          if (json['@graph']) {
+            // Schema.org med @graph: {"@graph": [...]}
+            items = json['@graph'];
+          } else if (Array.isArray(json)) {
+            items = json;
+          } else {
+            items = [json];
+          }
+
+          items.forEach(item => {
+            const itemType = Array.isArray(item['@type']) ? item['@type'].join(' ') : (item['@type'] || '');
+
+            // Restaurant, LocalBusiness, FoodEstablishment
+            if (itemType && (
+              itemType.includes('Restaurant') ||
+              itemType.includes('LocalBusiness') ||
+              itemType.includes('FoodEstablishment')
+            )) {
+              // Namn
+              if (item.name) schemaData.name = item.name;
+
+              // Adress
+              if (item.address) {
+                if (typeof item.address === 'string') {
+                  schemaData.address = item.address;
+                } else if (item.address.streetAddress || item.address.addressLocality) {
+                  const parts = [];
+                  if (item.address.streetAddress) parts.push(item.address.streetAddress);
+                  if (item.address.postalCode) parts.push(item.address.postalCode);
+                  if (item.address.addressLocality) parts.push(item.address.addressLocality);
+                  schemaData.address = parts.join(', ');
+                  schemaData.city = item.address.addressLocality;
+                  schemaData.postalCode = item.address.postalCode;
+                  schemaData.street = item.address.streetAddress;
+                }
+              }
+
+              // Telefon
+              if (item.telephone) {
+                schemaData.phone = item.telephone;
+              }
+
+              // Email
+              if (item.email) {
+                schemaData.email = item.email;
+              }
+
+              // Öppettider
+              if (item.openingHoursSpecification) {
+                schemaData.hours = this.parseSchemaOrgHours(item.openingHoursSpecification);
+              }
+
+              // Beskrivning och andra fält
+              if (item.description) schemaData.description = item.description;
+              if (item.url) schemaData.website = item.url;
+              if (item.priceRange) schemaData.priceRange = item.priceRange;
+              if (item.servesCuisine) schemaData.cuisine = item.servesCuisine;
+            }
+
+            // WebPage - många restauranger använder WebPage istället för Restaurant
+            // Extrahera från description-fältet: "Storgatan 39, Ängelholm – 0723221101"
+            if (itemType && itemType.includes('WebPage')) {
+              if (item.name && !schemaData.name) {
+                // Ta namn före separator " – " eller " - "
+                const nameParts = item.name.split(/\s+[–-]\s+/);
+                if (nameParts.length > 1) {
+                  schemaData.name = nameParts[1]; // "Ängelholm – Torstens" → "Torstens"
+                }
+              }
+
+              // Parse description för adress, stad och telefon
+              if (item.description && !schemaData.address) {
+                // "Storgatan 39, Ängelholm – 0723221101"
+                // Pattern: "Gata Nummer, Stad – Telefon"
+                const descMatch = item.description.match(/([A-ZÅÄÖÜ][a-zåäöü\s]+\s+\d+[a-zA-Z]?),\s*([A-ZÅÄÖÜ][a-zåäöü]+)\s*[–-]\s*([\d\s]+)/);
+                if (descMatch) {
+                  schemaData.street = descMatch[1].trim();
+                  schemaData.city = descMatch[2].trim();
+                  schemaData.address = `${descMatch[1].trim()}, ${descMatch[2].trim()}`;
+                  if (!schemaData.phone) {
+                    schemaData.phone = descMatch[3].replace(/\s/g, '');
+                  }
+                }
+              }
+            }
+          });
+        } catch (parseError) {
+          this.logger?.debug('Could not parse JSON-LD:', parseError.message);
+        }
+      });
+    } catch (error) {
+      this.logger?.debug('Error extracting Schema.org:', error.message);
+    }
+
+    return Object.keys(schemaData).length > 0 ? schemaData : null;
+  }
+
+  /**
+   * Konvertera Schema.org openingHoursSpecification till vårt format
+   */
+  parseSchemaOrgHours(hoursSpec) {
+    const hours = {};
+    const dayMapping = {
+      'Monday': 'monday', 'Tuesday': 'tuesday', 'Wednesday': 'wednesday',
+      'Thursday': 'thursday', 'Friday': 'friday', 'Saturday': 'saturday', 'Sunday': 'sunday',
+      'Måndag': 'monday', 'Tisdag': 'tuesday', 'Onsdag': 'wednesday',
+      'Torsdag': 'thursday', 'Fredag': 'friday', 'Lördag': 'saturday', 'Söndag': 'sunday'
+    };
+
+    const specs = Array.isArray(hoursSpec) ? hoursSpec : [hoursSpec];
+
+    specs.forEach(spec => {
+      const days = Array.isArray(spec.dayOfWeek) ? spec.dayOfWeek : [spec.dayOfWeek];
+      const opens = spec.opens;
+      const closes = spec.closes;
+
+      if (opens && closes) {
+        days.forEach(day => {
+          const normalizedDay = dayMapping[day];
+          if (normalizedDay) {
+            hours[normalizedDay] = `${opens}–${closes}`;
+          }
+        });
+      }
+    });
+
+    return Object.keys(hours).length > 0 ? hours : null;
+  }
+
   extractTextFromHtml(html) {
     const $ = cheerio.load(html);
+
+    // LAYER 1: Extrahera Schema.org strukturerad data FÖRST (mest tillförlitligt!)
+    const schemaOrg = this.extractSchemaOrg($);
 
     // Ta bort script, style och andra element som inte innehåller användbar text
     $('script, style, nav, footer, header, .nav, .header, .footer').remove();
@@ -34,7 +206,12 @@ export class ContentExtractor {
       links: $('a[href]').map((i, el) => ({
         text: $(el).text().trim(),
         href: $(el).attr('href')
-      })).get().filter(link => link.text && link.href)
+      })).get().filter(link => link.text && link.href),
+      // SCHEMA.ORG DATA (högsta prioritet!)
+      schemaOrg: schemaOrg,
+      // Extrahera meta tags för fallback
+      metaDescription: $('meta[name="description"]').attr('content')?.trim(),
+      metaKeywords: $('meta[name="keywords"]').attr('content')?.trim()
     };
   }
 

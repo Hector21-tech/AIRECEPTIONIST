@@ -48,8 +48,19 @@ export class AutoScraper {
       if (extractedData && extractedData.content && extractedData.content.length > 0) {
         const mainContent = extractedData.content[0];
 
-        // Försök hitta restaurangnamn från title eller h1
-        if (mainContent.title) {
+        // LAYER 1: Prioritize Schema.org data (BEST!)
+        if (mainContent.schemaOrg) {
+          if (mainContent.schemaOrg.name) {
+            actualName = mainContent.schemaOrg.name;
+            brand = actualName.replace(/\s*(restaurang|restaurant|café|bar|pub|bistro|krog)\s*/i, '').trim();
+          }
+          if (mainContent.schemaOrg.city) {
+            city = mainContent.schemaOrg.city;
+          }
+        }
+
+        // LAYER 2: Fallback to title/h1 extraction if Schema.org didn't have name
+        if (actualName === `Restaurang ${name}` && mainContent.title) {
           const titleMatch = mainContent.title.match(/([A-ZÅÄÖ][a-zåäöé\s]+(?:restaurang|restaurant|café|bar|pub|bistro|krog))/i);
           if (titleMatch) {
             actualName = titleMatch[1].trim();
@@ -57,8 +68,8 @@ export class AutoScraper {
           }
         }
 
-        // Försök hitta stad från adress
-        if (mainContent.contact && mainContent.contact.address) {
+        // LAYER 3: Fallback to address extraction if Schema.org didn't have city
+        if (city === 'Auto-detected' && mainContent.contact && mainContent.contact.address) {
           const extractorModule = await import('./extractor.js');
           const extractor = new extractorModule.ContentExtractor();
           const addressInfo = extractor.extractAddress(mainContent.contact.address);
@@ -147,6 +158,46 @@ export class AutoScraper {
           const textData = extractor.extractTextFromHtml(page.html);
           const category = extractor.categorizeContent({ url: page.url, text: textData });
 
+          // PRIORITIZE Schema.org data over regex extraction
+          let hours = null;
+          let contact = null;
+
+          // Layer 1: Use Schema.org if available (BEST!)
+          if (textData.schemaOrg) {
+            if (textData.schemaOrg.hours) {
+              hours = textData.schemaOrg.hours;
+            }
+            contact = {
+              phone: textData.schemaOrg.phone,
+              email: textData.schemaOrg.email,
+              address: textData.schemaOrg.address
+            };
+          }
+
+          // Layer 2: Fallback to regex extraction if Schema.org didn't have data
+          if (!hours) {
+            hours = extractor.extractHours(textData.mainText);
+          }
+          if (!contact || !contact.phone || !contact.email || !contact.address) {
+            const extractedContact = extractor.extractContact(textData.mainText);
+            if (extractedContact) {
+              contact = {
+                phone: contact?.phone || extractedContact.phone,
+                email: contact?.email || extractedContact.email,
+                address: contact?.address || extractedContact.address
+              };
+            }
+          }
+
+          // Layer 3: Extract from meta description as fallback for address/city
+          if (!contact?.address && textData.metaDescription) {
+            const metaAddress = extractor.extractAddress(textData.metaDescription);
+            if (metaAddress) {
+              contact = contact || {};
+              contact.address = metaAddress.full;
+            }
+          }
+
           const content = {
             url: page.url,
             category,
@@ -156,10 +207,11 @@ export class AutoScraper {
             mainText: textData.mainText,
             menuItems: textData.menuItems,
             prices: textData.prices,
-            hours: extractor.extractHours(textData.mainText),
-            contact: extractor.extractContact(textData.mainText),
+            hours: hours,
+            contact: contact,
             allergens: extractor.extractAllergens(textData.mainText),
             links: textData.links,
+            schemaOrg: textData.schemaOrg, // Include Schema.org data for later use
             extractedAt: new Date().toISOString()
           };
 

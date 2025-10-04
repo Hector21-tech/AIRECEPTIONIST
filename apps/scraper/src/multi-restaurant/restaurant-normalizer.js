@@ -118,8 +118,10 @@ export class RestaurantNormalizer {
       if (weekdays.includes(normalizedDay)) {
         if (hours === 'closed' || hours === 'stängt') {
           normalized[normalizedDay] = 'closed';
-        } else if (typeof hours === 'string' && hours.includes('-')) {
-          const [start, end] = hours.split('-').map(t => this.normalizeTime(t.trim()));
+        } else if (typeof hours === 'string' && (hours.includes('-') || hours.includes('–') || hours.includes('—'))) {
+          // Support both short dash (-), en dash (–), and em dash (—)
+          const parts = hours.split(/[-–—]/).map(t => this.normalizeTime(t.trim()));
+          const [start, end] = parts;
           if (start && end) {
             normalized[normalizedDay] = `${start}–${end}`;
           } else {

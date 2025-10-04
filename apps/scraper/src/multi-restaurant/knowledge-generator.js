@@ -100,12 +100,31 @@ export class KnowledgeGenerator {
       return qa;
     }
 
-    // Allmän menyfråga
+    // Allmän menyfråga - analysera menyn intelligent
     const categories = [...new Set(info.menu.map(item => item.category))];
+
+    // Fallback: Om alla kategorier är "allmän", analysera rätternas innehåll
+    let menuDescription = categories.join(', ');
+    if (categories.length === 1 && categories[0] === 'allmän') {
+      const menuTypes = [];
+      const menuText = info.menu.map(item => `${item.title} ${item.description || ''}`).join(' ').toLowerCase();
+
+      if (menuText.match(/pizza|margherita|vesuvio/i)) menuTypes.push('pizza');
+      if (menuText.match(/pasta|tagliatelle|bucatini|spaghetti/i)) menuTypes.push('pasta');
+      if (menuText.match(/risotto/i)) menuTypes.push('risotto');
+      if (menuText.match(/lax|fisk|skaldjur|musslo|räk|scampi/i)) menuTypes.push('skaldjur och fisk');
+      if (menuText.match(/biff|kött|kyckling/i)) menuTypes.push('kött');
+      if (menuText.match(/sallad|vegetar/i)) menuTypes.push('vegetariska rätter');
+
+      if (menuTypes.length > 0) {
+        menuDescription = menuTypes.join(', ');
+      }
+    }
+
     qa.push({
       id: this.generateId('meny allmän', 'menu'),
       question: 'Vad har ni för mat?',
-      answer: `Vi serverar ${categories.join(', ')} och mycket mer. Se vår kompletta meny på hemsidan eller ring oss!`,
+      answer: `Vi serverar ${menuDescription} och mycket mer. Se vår kompletta meny på hemsidan eller ring oss!`,
       source: 'menu_analysis',
       tags: ['meny', 'mat', 'kategorier'],
       location: location
