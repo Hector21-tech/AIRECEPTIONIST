@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BarChart3, Users, Phone, Menu, Building2 } from 'lucide-react';
+import { BarChart3, Users, Phone, Menu, Building2, Globe } from 'lucide-react';
 import useSWR from 'swr';
 
 type TeamData = {
@@ -80,6 +80,7 @@ export default function AIReceptionistLayout({
   const navItems = [
     { href: '/overview', icon: BarChart3, label: 'Översikt' },
     { href: '/customers', icon: Users, label: 'Kunder' },
+    { href: '/scraper', icon: Globe, label: 'Restaurant Scraper' },
   ];
 
   return (
