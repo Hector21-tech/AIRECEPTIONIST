@@ -16,11 +16,13 @@ interface ScrapeResult {
  * Trigger scraping for a restaurant website
  * @param websiteUrl - The restaurant's website URL
  * @param restaurantName - The restaurant's name
+ * @param restaurantSlug - Optional predefined slug (if not provided, scraper will generate one)
  * @returns Promise with scrape result including slug and knowledge base ID
  */
 export async function scrapeRestaurant(
   websiteUrl: string,
-  restaurantName: string
+  restaurantName: string,
+  restaurantSlug?: string
 ): Promise<ScrapeResult> {
   try {
     const scraperApiUrl = process.env.SCRAPER_SERVICE_URL || 'http://localhost:4001';
@@ -35,6 +37,7 @@ export async function scrapeRestaurant(
       body: JSON.stringify({
         url: websiteUrl,
         name: restaurantName,
+        slug: restaurantSlug, // Send predefined slug if available
         syncToElevenLabs: true,
       }),
     });

@@ -88,14 +88,23 @@ export class AutoScraper {
 
   /**
    * Scrapa en URL automatiskt
+   * @param {string} url - URL to scrape
+   * @param {string} [providedSlug] - Optional predefined slug to use instead of auto-detected
    */
-  async scrapeUrl(url) {
+  async scrapeUrl(url, providedSlug = null) {
     this.emitProgress('starting', `🍽️ Auto-scraping: ${url}`);
 
     try {
       // 1. Preliminär restauranginfo från URL
       const prelimRestaurantInfo = await this.extractRestaurantInfo(url);
-      this.emitProgress('detected', `📋 Initial detection: ${prelimRestaurantInfo.name} (${prelimRestaurantInfo.slug})`);
+
+      // Use provided slug if available, otherwise use auto-detected
+      if (providedSlug) {
+        prelimRestaurantInfo.slug = providedSlug;
+        this.emitProgress('detected', `📋 Using provided slug: ${prelimRestaurantInfo.name} (${providedSlug})`);
+      } else {
+        this.emitProgress('detected', `📋 Initial detection: ${prelimRestaurantInfo.name} (${prelimRestaurantInfo.slug})`);
+      }
 
       // 3. Crawla webbplatsen
       this.emitProgress('crawling', '🕷️ Crawling website...');
@@ -194,7 +203,13 @@ export class AutoScraper {
 
       // 5. Skapa en mapp för varje lokal
       for (const [index, locationData] of locations.entries()) {
-        const restaurantInfo = await this.extractRestaurantInfo(url, locationData);
+        let restaurantInfo = await this.extractRestaurantInfo(url, locationData);
+
+        // Use provided slug for first location if available
+        if (index === 0 && prelimRestaurantInfo.slug) {
+          restaurantInfo.slug = prelimRestaurantInfo.slug;
+        }
+
         this.emitProgress('location', `📋 Location ${index + 1}: ${restaurantInfo.name} (${restaurantInfo.slug})`);
 
         // Skapa output-mapp

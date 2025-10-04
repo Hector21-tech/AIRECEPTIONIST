@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import useSWR from 'swr';
 import { Suspense, useState, useEffect } from 'react';
-import { ArrowLeft, Phone, Settings, DollarSign, Clock, Activity, Edit, Trash2, Zap, CheckCircle, XCircle, AlertCircle, Play, Pause, User } from 'lucide-react';
+import { ArrowLeft, Phone, Settings, DollarSign, Clock, Activity, Edit, Trash2, Zap, CheckCircle, XCircle, AlertCircle, Play, Pause, User, Loader2, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
@@ -107,6 +107,8 @@ function CustomerDetails({ customerId }: { customerId: number }) {
     restaurantSlug: '',
     knowledgeBaseId: ''
   });
+  const [isScraping, setIsScraping] = useState(false);
+  const [scrapeStatus, setScrapeStatus] = useState<{ type: 'idle' | 'success' | 'error', message?: string }>({ type: 'idle' });
   const router = useRouter();
 
   // Initialize edit data when customer data loads
@@ -262,6 +264,46 @@ function CustomerDetails({ customerId }: { customerId: number }) {
 
   const handleInputChange = (field: string, value: string) => {
     setEditData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleScrapeWebsite = async () => {
+    if (!customer.websiteUrl) {
+      alert('Ingen Website URL konfigurerad');
+      return;
+    }
+
+    setIsScraping(true);
+    setScrapeStatus({ type: 'idle' });
+
+    try {
+      const response = await fetch(`/api/customers/${customerId}/scrape`, {
+        method: 'POST',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setScrapeStatus({
+          type: 'success',
+          message: `Scraping lyckades! Slug: ${result.slug || 'N/A'}, KB ID: ${result.knowledgeBaseId || 'synkas...'}`
+        });
+        // Refresh customer data
+        mutate();
+      } else {
+        setScrapeStatus({
+          type: 'error',
+          message: result.error || 'Scraping misslyckades'
+        });
+      }
+    } catch (error) {
+      setScrapeStatus({
+        type: 'error',
+        message: 'Nätverksfel vid scraping'
+      });
+      console.error('Scrape error:', error);
+    } finally {
+      setIsScraping(false);
+    }
   };
 
   const handleCreateElevenlabsIntegration = async () => {
@@ -550,6 +592,49 @@ function CustomerDetails({ customerId }: { customerId: number }) {
                   className={isEditing ? "font-mono" : "bg-gray-50 font-mono"}
                   placeholder="kb_..."
                 />
+              </div>
+            </div>
+
+            {/* Scrape Button and Status */}
+            <div className="mt-6 pt-6 border-t">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  {scrapeStatus.type === 'success' && (
+                    <div className="flex items-center gap-2 text-green-600">
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="text-sm">{scrapeStatus.message}</span>
+                    </div>
+                  )}
+                  {scrapeStatus.type === 'error' && (
+                    <div className="flex items-center gap-2 text-red-600">
+                      <XCircle className="h-4 w-4" />
+                      <span className="text-sm">{scrapeStatus.message}</span>
+                    </div>
+                  )}
+                  {isScraping && (
+                    <div className="flex items-center gap-2 text-blue-600">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">Scraping website...</span>
+                    </div>
+                  )}
+                </div>
+                <Button
+                  onClick={handleScrapeWebsite}
+                  disabled={isScraping || !customer.websiteUrl}
+                  className="flex items-center gap-2"
+                >
+                  {isScraping ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Scraping...
+                    </>
+                  ) : (
+                    <>
+                      <Globe className="h-4 w-4" />
+                      Scrape Website
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           </CardContent>

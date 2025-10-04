@@ -26,7 +26,7 @@ app.use(express.json());
  */
 app.post('/api/scrape-url', async (req, res) => {
   try {
-    const { url, name, syncToElevenLabs = true } = req.body;
+    const { url, name, slug: providedSlug, syncToElevenLabs = true } = req.body;
 
     if (!url || !name) {
       return res.status(400).json({
@@ -37,13 +37,14 @@ app.post('/api/scrape-url', async (req, res) => {
 
     console.log(`🚀 Starting scrape for: ${name} (${url})`);
 
-    // Generera slug från namnet
-    const slug = slugify(name, { lower: true, strict: true });
+    // Använd slug från request eller generera ett nytt
+    const slug = providedSlug || slugify(name, { lower: true, strict: true });
+    console.log(`📋 Using slug: ${slug}${providedSlug ? ' (provided)' : ' (generated)'}`);
 
     const scraper = new AutoScraper();
 
-    // Starta scrape i bakgrunden
-    scraper.scrapeUrl(url)
+    // Starta scrape i bakgrunden med slug
+    scraper.scrapeUrl(url, slug)
       .then(async result => {
         console.log(`✅ Auto-scrape completed for ${name}: ${result.slug || slug}`);
 
@@ -65,7 +66,7 @@ app.post('/api/scrape-url', async (req, res) => {
               console.log(`✅ Synced ${name} to ElevenLabs`);
               console.log(`   Knowledge Base ID: ${syncResult.documentId}`);
 
-              // Save knowledge_base_id to info.json
+              // Save knowledge_base_id to info.json (local only)
               try {
                 const infoPath = path.join(restaurantPath, 'info.json');
                 const infoContent = await fs.readFile(infoPath, 'utf-8');
@@ -75,6 +76,38 @@ app.post('/api/scrape-url', async (req, res) => {
                 console.log(`   ✅ Saved knowledge_base_id to info.json`);
               } catch (err) {
                 console.error(`   ⚠️  Failed to save knowledge_base_id:`, err.message);
+              }
+
+              // Update database via Next.js API
+              const nextApiUrl = process.env.NEXT_API_URL;
+              const apiSecret = process.env.SCRAPER_API_SECRET;
+
+              if (nextApiUrl && apiSecret) {
+                try {
+                  const updateResponse = await fetch(`${nextApiUrl}/api/scraper/update-kb`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'x-api-secret': apiSecret,
+                    },
+                    body: JSON.stringify({
+                      restaurantSlug: result.slug || slug,
+                      knowledgeBaseId: syncResult.documentId,
+                    }),
+                  });
+
+                  if (updateResponse.ok) {
+                    const updateResult = await updateResponse.json();
+                    console.log(`   ✅ Updated database for customer: ${updateResult.customerName}`);
+                  } else {
+                    const errorData = await updateResponse.json();
+                    console.error(`   ⚠️  Failed to update database:`, errorData.error);
+                  }
+                } catch (err) {
+                  console.error(`   ⚠️  Failed to call Next.js API:`, err.message);
+                }
+              } else {
+                console.warn(`   ⚠️  NEXT_API_URL or SCRAPER_API_SECRET not set - database not updated`);
               }
             })
             .catch(err => console.error(`❌ ElevenLabs sync failed:`, err.message));
