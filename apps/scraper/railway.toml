@@ -7,6 +7,9 @@ nixPkgs = ["nodejs", "playwright", "chromium"]
 [build.nixpacksPlan.phases.install]
 cmds = ["npm install", "npx playwright install --with-deps chromium"]
 
+[build.nixpacksPlan.phases.build]
+cmds = ["echo 'No build step needed for Express server'"]
+
 [deploy]
 startCommand = "node scrape-server.js"
 healthcheckPath = "/health"
