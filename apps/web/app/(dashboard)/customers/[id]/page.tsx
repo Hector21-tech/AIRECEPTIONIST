@@ -26,6 +26,9 @@ type CustomerData = {
     contactName: string | null;
     contactPhone: string | null;
     contactEmail: string | null;
+    websiteUrl: string | null;
+    restaurantSlug: string | null;
+    knowledgeBaseId: string | null;
     twilioNumber: string | null;
     agentId: string | null;
     elevenlabsApiKey: string | null;
@@ -493,6 +496,40 @@ function CustomerDetails({ customerId }: { customerId: number }) {
         </Card>
       </div>
 
+
+      {/* Restaurant Scraping Info */}
+      {(customer.websiteUrl || customer.restaurantSlug || customer.knowledgeBaseId) && (
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Restaurant Scraping Info
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div>
+                <Label>Website URL</Label>
+                <p className="mt-1 text-sm text-gray-600">
+                  {customer.websiteUrl || 'Ej angiven'}
+                </p>
+              </div>
+              <div>
+                <Label>Restaurant Slug</Label>
+                <p className="mt-1 text-sm text-gray-600 font-mono">
+                  {customer.restaurantSlug || 'Ej scrapad'}
+                </p>
+              </div>
+              <div>
+                <Label>Knowledge Base ID</Label>
+                <p className="mt-1 text-sm text-gray-600 font-mono">
+                  {customer.knowledgeBaseId || 'Ej synkad'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       <div className="grid gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader>
