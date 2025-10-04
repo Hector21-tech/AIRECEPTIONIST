@@ -147,6 +147,10 @@ export const customers = pgTable('customers', {
   webhookElevenlabsStatus: varchar('webhook_elevenlabs_status', { length: 20 }).default('inactive'),
   webhookTwilioUrl: text('webhook_twilio_url'),
   webhookElevenlabsUrl: text('webhook_elevenlabs_url'),
+  // Restaurant Scraper Integration
+  websiteUrl: text('website_url'),
+  restaurantSlug: varchar('restaurant_slug', { length: 100 }),
+  knowledgeBaseId: varchar('knowledge_base_id', { length: 100 }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 

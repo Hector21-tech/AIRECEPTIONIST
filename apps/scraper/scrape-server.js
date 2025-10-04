@@ -14,7 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3001;
+const PORT = 4001;
 
 // Middleware
 app.use(cors());
@@ -59,8 +59,24 @@ app.post('/api/scrape-url', async (req, res) => {
         // Synka till ElevenLabs om önskat
         if (syncToElevenLabs) {
           const sync = new ElevenLabsSync();
+          const fs = await import('fs/promises');
           sync.syncRestaurant(restaurantPath, result.name || name, result.city || 'N/A')
-            .then(() => console.log(`✅ Synced ${name} to ElevenLabs`))
+            .then(async (syncResult) => {
+              console.log(`✅ Synced ${name} to ElevenLabs`);
+              console.log(`   Knowledge Base ID: ${syncResult.documentId}`);
+
+              // Save knowledge_base_id to info.json
+              try {
+                const infoPath = path.join(restaurantPath, 'info.json');
+                const infoContent = await fs.readFile(infoPath, 'utf-8');
+                const info = JSON.parse(infoContent);
+                info.knowledgeBaseId = syncResult.documentId;
+                await fs.writeFile(infoPath, JSON.stringify(info, null, 2));
+                console.log(`   ✅ Saved knowledge_base_id to info.json`);
+              } catch (err) {
+                console.error(`   ⚠️  Failed to save knowledge_base_id:`, err.message);
+              }
+            })
             .catch(err => console.error(`❌ ElevenLabs sync failed:`, err.message));
         }
       })
@@ -79,6 +95,43 @@ app.post('/api/scrape-url', async (req, res) => {
       success: false,
       error: 'Failed to start scrape',
       message: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/restaurant/:slug/info
+ * Get restaurant info including knowledge base ID
+ */
+app.get('/api/restaurant/:slug/info', async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const fs = await import('fs/promises');
+
+    const restaurantPath = path.join(__dirname, 'restaurants', slug);
+    const infoPath = path.join(restaurantPath, 'info.json');
+
+    try {
+      const infoContent = await fs.readFile(infoPath, 'utf-8');
+      const info = JSON.parse(infoContent);
+
+      res.json({
+        success: true,
+        slug,
+        name: info.name,
+        city: info.city,
+        knowledgeBaseId: info.knowledgeBaseId || null
+      });
+    } catch (err) {
+      res.status(404).json({
+        success: false,
+        error: 'Restaurant not found or info not available yet'
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });

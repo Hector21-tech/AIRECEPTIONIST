@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Building2, Phone, Volume2, Link as LinkIcon, Save, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Building2, Phone, Volume2, Link as LinkIcon, Save, Plus, Trash2, Globe } from 'lucide-react';
 import Link from 'next/link';
 import AIReceptionistLayout from '../../ai-layout';
 
@@ -31,6 +31,7 @@ type CustomerFormData = {
   contactName: string;
   contactEmail: string;
   contactPhone: string;
+  websiteUrl: string;
   twilioNumber: string;
   elevenlabsAgentId: string;
   planType: string;
@@ -46,6 +47,7 @@ const initialFormData: CustomerFormData = {
   contactName: '',
   contactEmail: '',
   contactPhone: '',
+  websiteUrl: '',
   twilioNumber: '',
   elevenlabsAgentId: '',
   planType: 'standard',
@@ -119,6 +121,7 @@ function NewCustomerContent() {
           contactName: formData.contactName,
           contactEmail: formData.contactEmail,
           contactPhone: formData.contactPhone,
+          websiteUrl: formData.websiteUrl,
           twilioNumber: formData.twilioNumber,
           agentId: formData.elevenlabsAgentId,
           planType: formData.planType,
@@ -217,6 +220,24 @@ function NewCustomerContent() {
                 placeholder="+46 431 123 456"
                 className="mt-1"
               />
+            </div>
+
+            <div>
+              <Label htmlFor="websiteUrl" className="flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                Webbplats URL
+              </Label>
+              <Input
+                id="websiteUrl"
+                type="url"
+                value={formData.websiteUrl}
+                onChange={(e) => handleChange('websiteUrl', e.target.value)}
+                placeholder="https://restaurang.se"
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Ange restaurangens webbplats för automatisk scraping och kunskapsbas-sync
+              </p>
             </div>
 
             <div>
