@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import useSWR from 'swr';
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { ArrowLeft, Phone, Settings, DollarSign, Clock, Activity, Edit, Trash2, Zap, CheckCircle, XCircle, AlertCircle, Play, Pause, User } from 'lucide-react';
 import Link from 'next/link';
 import { use } from 'react';
@@ -199,19 +199,21 @@ function CustomerDetails({ customerId }: { customerId: number }) {
   const { customer, monthUsage, recentCalls, integrations } = data;
 
   // Initialize edit data when customer data loads
-  if (customer && editData.contactName === '' && !isEditing) {
-    setEditData({
-      contactName: customer.contactName || '',
-      contactPhone: customer.contactPhone || '',
-      contactEmail: customer.contactEmail || '',
-      twilioNumber: customer.twilioNumber || '',
-      agentId: customer.agentId || '',
-      elevenlabsApiKey: customer.elevenlabsApiKey || '',
-      websiteUrl: customer.websiteUrl || '',
-      restaurantSlug: customer.restaurantSlug || '',
-      knowledgeBaseId: customer.knowledgeBaseId || ''
-    });
-  }
+  useEffect(() => {
+    if (customer) {
+      setEditData({
+        contactName: customer.contactName || '',
+        contactPhone: customer.contactPhone || '',
+        contactEmail: customer.contactEmail || '',
+        twilioNumber: customer.twilioNumber || '',
+        agentId: customer.agentId || '',
+        elevenlabsApiKey: customer.elevenlabsApiKey || '',
+        websiteUrl: customer.websiteUrl || '',
+        restaurantSlug: customer.restaurantSlug || '',
+        knowledgeBaseId: customer.knowledgeBaseId || ''
+      });
+    }
+  }, [customer]);
 
   const handleEditToggle = () => {
     if (isEditing) {
