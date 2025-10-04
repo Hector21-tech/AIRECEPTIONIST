@@ -14,7 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 4001;
+const PORT = process.env.PORT || 4001;
 
 // Middleware
 app.use(cors());
@@ -148,7 +148,7 @@ app.get('/health', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Scrape Server`);
   console.log(`📡 Listening on http://localhost:${PORT}`);
   console.log('');
