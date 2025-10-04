@@ -102,7 +102,10 @@ function CustomerDetails({ customerId }: { customerId: number }) {
     contactEmail: '',
     twilioNumber: '',
     agentId: '',
-    elevenlabsApiKey: ''
+    elevenlabsApiKey: '',
+    websiteUrl: '',
+    restaurantSlug: '',
+    knowledgeBaseId: ''
   });
   const router = useRouter();
 
@@ -203,7 +206,10 @@ function CustomerDetails({ customerId }: { customerId: number }) {
       contactEmail: customer.contactEmail || '',
       twilioNumber: customer.twilioNumber || '',
       agentId: customer.agentId || '',
-      elevenlabsApiKey: customer.elevenlabsApiKey || ''
+      elevenlabsApiKey: customer.elevenlabsApiKey || '',
+      websiteUrl: customer.websiteUrl || '',
+      restaurantSlug: customer.restaurantSlug || '',
+      knowledgeBaseId: customer.knowledgeBaseId || ''
     });
   }
 
@@ -216,7 +222,10 @@ function CustomerDetails({ customerId }: { customerId: number }) {
         contactEmail: customer.contactEmail || '',
         twilioNumber: customer.twilioNumber || '',
         agentId: customer.agentId || '',
-        elevenlabsApiKey: customer.elevenlabsApiKey || ''
+        elevenlabsApiKey: customer.elevenlabsApiKey || '',
+        websiteUrl: customer.websiteUrl || '',
+        restaurantSlug: customer.restaurantSlug || '',
+        knowledgeBaseId: customer.knowledgeBaseId || ''
       });
     }
     setIsEditing(!isEditing);
@@ -498,7 +507,7 @@ function CustomerDetails({ customerId }: { customerId: number }) {
 
 
       {/* Restaurant Scraping Info */}
-      {(customer.websiteUrl || customer.restaurantSlug || customer.knowledgeBaseId) && (
+      {(customer.websiteUrl || customer.restaurantSlug || customer.knowledgeBaseId || isEditing) && (
         <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -509,22 +518,37 @@ function CustomerDetails({ customerId }: { customerId: number }) {
           <CardContent>
             <div className="grid gap-4 md:grid-cols-3">
               <div>
-                <Label>Website URL</Label>
-                <p className="mt-1 text-sm text-gray-600">
-                  {customer.websiteUrl || 'Ej angiven'}
-                </p>
+                <Label htmlFor="websiteUrl">Website URL</Label>
+                <Input
+                  id="websiteUrl"
+                  value={isEditing ? editData.websiteUrl : (customer.websiteUrl || '')}
+                  onChange={(e) => handleInputChange('websiteUrl', e.target.value)}
+                  readOnly={!isEditing}
+                  className={isEditing ? "" : "bg-gray-50"}
+                  placeholder="https://restaurang.se"
+                />
               </div>
               <div>
-                <Label>Restaurant Slug</Label>
-                <p className="mt-1 text-sm text-gray-600 font-mono">
-                  {customer.restaurantSlug || 'Ej scrapad'}
-                </p>
+                <Label htmlFor="restaurantSlug">Restaurant Slug</Label>
+                <Input
+                  id="restaurantSlug"
+                  value={isEditing ? editData.restaurantSlug : (customer.restaurantSlug || '')}
+                  onChange={(e) => handleInputChange('restaurantSlug', e.target.value)}
+                  readOnly={!isEditing}
+                  className={isEditing ? "font-mono" : "bg-gray-50 font-mono"}
+                  placeholder="restaurang-namn"
+                />
               </div>
               <div>
-                <Label>Knowledge Base ID</Label>
-                <p className="mt-1 text-sm text-gray-600 font-mono">
-                  {customer.knowledgeBaseId || 'Ej synkad'}
-                </p>
+                <Label htmlFor="knowledgeBaseId">Knowledge Base ID</Label>
+                <Input
+                  id="knowledgeBaseId"
+                  value={isEditing ? editData.knowledgeBaseId : (customer.knowledgeBaseId || '')}
+                  onChange={(e) => handleInputChange('knowledgeBaseId', e.target.value)}
+                  readOnly={!isEditing}
+                  className={isEditing ? "font-mono" : "bg-gray-50 font-mono"}
+                  placeholder="kb_..."
+                />
               </div>
             </div>
           </CardContent>
