@@ -1,6 +1,12 @@
 [build]
 builder = "NIXPACKS"
 
+[build.nixpacksPlan.phases.setup]
+nixPkgs = ["nodejs", "playwright", "chromium"]
+
+[build.nixpacksPlan.phases.install]
+cmds = ["npm install", "npx playwright install --with-deps chromium"]
+
 [deploy]
 startCommand = "node scrape-server.js"
 healthcheckPath = "/health"
@@ -10,3 +16,4 @@ restartPolicyMaxRetries = 10
 
 [env]
 NODE_ENV = "production"
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "0"
