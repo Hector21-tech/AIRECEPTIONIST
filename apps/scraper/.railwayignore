@@ -1,0 +1,8 @@
+node_modules/
+*.log
+.env.local
+.DS_Store
+*.backup
+test-*.js
+scraper-ui-new.html
+restaurants/
