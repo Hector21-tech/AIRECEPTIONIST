@@ -109,6 +109,23 @@ function CustomerDetails({ customerId }: { customerId: number }) {
   });
   const router = useRouter();
 
+  // Initialize edit data when customer data loads
+  useEffect(() => {
+    if (data?.customer) {
+      setEditData({
+        contactName: data.customer.contactName || '',
+        contactPhone: data.customer.contactPhone || '',
+        contactEmail: data.customer.contactEmail || '',
+        twilioNumber: data.customer.twilioNumber || '',
+        agentId: data.customer.agentId || '',
+        elevenlabsApiKey: data.customer.elevenlabsApiKey || '',
+        websiteUrl: data.customer.websiteUrl || '',
+        restaurantSlug: data.customer.restaurantSlug || '',
+        knowledgeBaseId: data.customer.knowledgeBaseId || ''
+      });
+    }
+  }, [data?.customer]);
+
   const deleteCustomer = async () => {
     if (!data?.customer) return;
 
@@ -197,23 +214,6 @@ function CustomerDetails({ customerId }: { customerId: number }) {
   if (!data || !data.customer) return <CustomerDetailsSkeleton />;
 
   const { customer, monthUsage, recentCalls, integrations } = data;
-
-  // Initialize edit data when customer data loads
-  useEffect(() => {
-    if (customer) {
-      setEditData({
-        contactName: customer.contactName || '',
-        contactPhone: customer.contactPhone || '',
-        contactEmail: customer.contactEmail || '',
-        twilioNumber: customer.twilioNumber || '',
-        agentId: customer.agentId || '',
-        elevenlabsApiKey: customer.elevenlabsApiKey || '',
-        websiteUrl: customer.websiteUrl || '',
-        restaurantSlug: customer.restaurantSlug || '',
-        knowledgeBaseId: customer.knowledgeBaseId || ''
-      });
-    }
-  }, [customer]);
 
   const handleEditToggle = () => {
     if (isEditing) {
@@ -509,8 +509,7 @@ function CustomerDetails({ customerId }: { customerId: number }) {
 
 
       {/* Restaurant Scraping Info */}
-      {(customer.websiteUrl || customer.restaurantSlug || customer.knowledgeBaseId || isEditing) && (
-        <Card className="lg:col-span-3">
+      <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5" />
@@ -523,7 +522,7 @@ function CustomerDetails({ customerId }: { customerId: number }) {
                 <Label htmlFor="websiteUrl">Website URL</Label>
                 <Input
                   id="websiteUrl"
-                  value={isEditing ? editData.websiteUrl : (customer.websiteUrl || '')}
+                  value={isEditing ? editData.websiteUrl : (customer.websiteUrl || 'Ej angiven')}
                   onChange={(e) => handleInputChange('websiteUrl', e.target.value)}
                   readOnly={!isEditing}
                   className={isEditing ? "" : "bg-gray-50"}
@@ -534,7 +533,7 @@ function CustomerDetails({ customerId }: { customerId: number }) {
                 <Label htmlFor="restaurantSlug">Restaurant Slug</Label>
                 <Input
                   id="restaurantSlug"
-                  value={isEditing ? editData.restaurantSlug : (customer.restaurantSlug || '')}
+                  value={isEditing ? editData.restaurantSlug : (customer.restaurantSlug || 'Ej scrapad')}
                   onChange={(e) => handleInputChange('restaurantSlug', e.target.value)}
                   readOnly={!isEditing}
                   className={isEditing ? "font-mono" : "bg-gray-50 font-mono"}
@@ -545,7 +544,7 @@ function CustomerDetails({ customerId }: { customerId: number }) {
                 <Label htmlFor="knowledgeBaseId">Knowledge Base ID</Label>
                 <Input
                   id="knowledgeBaseId"
-                  value={isEditing ? editData.knowledgeBaseId : (customer.knowledgeBaseId || '')}
+                  value={isEditing ? editData.knowledgeBaseId : (customer.knowledgeBaseId || 'Ej synkad')}
                   onChange={(e) => handleInputChange('knowledgeBaseId', e.target.value)}
                   readOnly={!isEditing}
                   className={isEditing ? "font-mono" : "bg-gray-50 font-mono"}
@@ -555,7 +554,6 @@ function CustomerDetails({ customerId }: { customerId: number }) {
             </div>
           </CardContent>
         </Card>
-      )}
       <div className="grid gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader>

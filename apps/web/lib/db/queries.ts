@@ -508,6 +508,7 @@ export async function createCustomer(data: {
   planType?: string;
   description?: string;
   fallbackSms?: string;
+  websiteUrl?: string;
   integrations?: {
     id: string;
     name: string;
@@ -536,6 +537,7 @@ export async function createCustomer(data: {
     voiceId: data.elevenlabsVoiceId,
     planType: data.planType || 'Standard',
     description: data.description,
+    websiteUrl: data.websiteUrl,
     teamId: teamData.id, // Associate with current user's team
   };
 
