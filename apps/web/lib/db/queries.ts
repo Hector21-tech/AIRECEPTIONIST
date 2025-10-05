@@ -509,6 +509,9 @@ export async function createCustomer(data: {
   description?: string;
   fallbackSms?: string;
   websiteUrl?: string;
+  updateFrequency?: string;
+  hasDailySpecial?: string;
+  dailyUpdateTime?: string;
   integrations?: {
     id: string;
     name: string;
@@ -538,6 +541,9 @@ export async function createCustomer(data: {
     planType: data.planType || 'Standard',
     description: data.description,
     websiteUrl: data.websiteUrl,
+    updateFrequency: data.updateFrequency || 'none',
+    hasDailySpecial: data.hasDailySpecial || 'false',
+    dailyUpdateTime: data.dailyUpdateTime || null,
     teamId: teamData.id, // Associate with current user's team
   };
 

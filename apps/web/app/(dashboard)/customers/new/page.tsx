@@ -13,8 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Building2, Phone, Volume2, Link as LinkIcon, Save, Plus, Trash2, Globe } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, Building2, Phone, Volume2, Link as LinkIcon, Save, Plus, Trash2, Globe, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import AIReceptionistLayout from '../../ai-layout';
 
@@ -39,6 +39,9 @@ type CustomerFormData = {
   planSetupFee: string;
   fallbackSms: string;
   description: string;
+  updateFrequency: string;
+  hasDailySpecial: string;
+  dailyUpdateTime: string;
   integrations: Integration[];
 };
 
@@ -55,6 +58,9 @@ const initialFormData: CustomerFormData = {
   planSetupFee: '5000.00',
   fallbackSms: '',
   description: '',
+  updateFrequency: 'none',
+  hasDailySpecial: 'false',
+  dailyUpdateTime: '',
   integrations: [],
 };
 
@@ -127,6 +133,9 @@ function NewCustomerContent() {
           planType: formData.planType,
           fallbackSms: formData.fallbackSms,
           description: formData.description,
+          updateFrequency: formData.updateFrequency,
+          hasDailySpecial: formData.hasDailySpecial,
+          dailyUpdateTime: formData.dailyUpdateTime,
           integrations: formData.integrations,
         }),
       });
@@ -344,6 +353,68 @@ function NewCustomerContent() {
                 step="0.01"
                 value={formData.planSetupFee}
                 onChange={(e) => handleChange('planSetupFee', e.target.value)}
+                className="mt-1"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Automatiska Uppdateringar */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <RefreshCw className="h-5 w-5" />
+              Automatiska Uppdateringar
+            </CardTitle>
+            <CardDescription>
+              Konfigurera automatisk scraping och uppdatering av Knowledge Base
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Update Frequency */}
+            <div>
+              <Label htmlFor="updateFrequency">Uppdateringsfrekvens</Label>
+              <Select
+                value={formData.updateFrequency}
+                onValueChange={(value) => handleChange('updateFrequency', value)}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Välj frekvens" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Ingen automatisk uppdatering</SelectItem>
+                  <SelectItem value="daily">Daglig</SelectItem>
+                  <SelectItem value="weekly">Veckovis</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Has Daily Special */}
+            <div>
+              <Label htmlFor="hasDailySpecial">Har dagens special</Label>
+              <Select
+                value={formData.hasDailySpecial}
+                onValueChange={(value) => handleChange('hasDailySpecial', value)}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Välj" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="false">Nej</SelectItem>
+                  <SelectItem value="true">Ja</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Daily Update Time */}
+            <div>
+              <Label htmlFor="dailyUpdateTime">Daglig uppdateringstid</Label>
+              <Input
+                id="dailyUpdateTime"
+                type="time"
+                value={formData.dailyUpdateTime}
+                onChange={(e) => handleChange('dailyUpdateTime', e.target.value)}
+                placeholder="06:00"
                 className="mt-1"
               />
             </div>
