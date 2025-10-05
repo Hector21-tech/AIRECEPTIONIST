@@ -9,6 +9,8 @@ import slugify from 'slugify';
 import { AutoScraper } from './src/auto-scraper.js';
 import { ElevenLabsSync } from './src/elevenlabs-sync.js';
 import { convertKnowledgeToVoiceAI } from './src/knowledge-converter.js';
+import dagensRouter from './routes/dagens.js';
+import elevenlabsAddDocumentRouter from './routes/elevenlabs-add-document.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,6 +21,10 @@ const PORT = process.env.PORT || 4001;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Mount new routes
+app.use('/api/restaurant', dagensRouter);
+app.use('/api/elevenlabs', elevenlabsAddDocumentRouter);
 
 /**
  * POST /api/scrape-url
@@ -186,8 +192,10 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`📡 Listening on http://localhost:${PORT}`);
   console.log('');
   console.log('API Endpoints:');
-  console.log(`  POST   /api/scrape-url  - Scrape a new restaurant`);
-  console.log(`  GET    /health          - Health check`);
+  console.log(`  POST   /api/scrape-url                      - Scrape a new restaurant`);
+  console.log(`  GET    /api/restaurant/:slug/dagens         - Get dagens content`);
+  console.log(`  POST   /api/elevenlabs/add-document         - Add document to KB`);
+  console.log(`  GET    /health                              - Health check`);
   console.log('');
   console.log(`📊 Open scraper-ui-new.html in your browser to scrape restaurants`);
 });

@@ -127,6 +127,67 @@ export class ElevenLabsSync {
   }
 
   /**
+   * Lägg till dokument till befintlig Knowledge Base
+   * Används för att uppdatera dagens special utan att radera hela KB
+   *
+   * @param {string} kbId - Befintligt Knowledge Base ID att lägga till dokument i
+   * @param {string} text - Text-innehåll för dokumentet
+   * @param {string} name - Namn på dokumentet
+   * @returns {Promise<object>} Document response med id och name
+   */
+  async addDocumentToKB(kbId, text, name) {
+    console.log(`📄 Adding document "${name}" to KB: ${kbId}`);
+
+    const url = `${this.baseUrl}/convai/knowledge-base/text`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'xi-api-key': this.apiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        text: text,
+        name: name,
+        knowledge_base_id: kbId // Detta kopplar dokumentet till befintlig KB
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to add document to KB: ${response.status} ${response.statusText}\n${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log(`✅ Document added successfully (Document ID: ${data.id})`);
+    return data;
+  }
+
+  /**
+   * Lista alla dokument i en Knowledge Base
+   *
+   * @param {string} kbId - Knowledge Base ID
+   * @returns {Promise<Array>} Lista med dokument
+   */
+  async listKBDocuments(kbId) {
+    const url = `${this.baseUrl}/convai/knowledge-base/${kbId}/documents`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'xi-api-key': this.apiKey
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to list KB documents: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.documents || [];
+  }
+
+  /**
    * Skapa dokument från fil (multipart upload)
    */
   async createFromFile(filePath, name) {

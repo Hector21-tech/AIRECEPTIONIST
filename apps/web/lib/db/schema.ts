@@ -151,6 +151,12 @@ export const customers = pgTable('customers', {
   websiteUrl: text('website_url'),
   restaurantSlug: varchar('restaurant_slug', { length: 100 }),
   knowledgeBaseId: varchar('knowledge_base_id', { length: 100 }),
+  // Auto-Update Settings
+  updateFrequency: varchar('update_frequency', { length: 20 }).default('none'), // 'none', 'daily', 'weekly'
+  hasDailySpecial: varchar('has_daily_special', { length: 5 }).default('false'), // 'true' or 'false' as string
+  dailyUpdateTime: varchar('daily_update_time', { length: 5 }), // '06:00', '07:00', etc
+  lastDailyHash: varchar('last_daily_hash', { length: 64 }), // SHA256 hash
+  lastUpdateDate: timestamp('last_update_date'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 

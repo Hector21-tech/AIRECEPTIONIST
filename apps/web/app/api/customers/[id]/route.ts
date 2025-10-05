@@ -66,7 +66,7 @@ export async function PATCH(
 
     // Parse request body
     const body = await request.json();
-    const { contactName, contactPhone, contactEmail, twilioNumber, agentId, elevenlabsApiKey, websiteUrl, restaurantSlug, knowledgeBaseId } = body;
+    const { contactName, contactPhone, contactEmail, twilioNumber, agentId, elevenlabsApiKey, websiteUrl, restaurantSlug, knowledgeBaseId, updateFrequency, hasDailySpecial, dailyUpdateTime } = body;
 
     // First verify the customer belongs to the user's team
     const customer = await db
@@ -97,6 +97,9 @@ export async function PATCH(
         websiteUrl: websiteUrl || null,
         restaurantSlug: restaurantSlug || null,
         knowledgeBaseId: knowledgeBaseId || null,
+        updateFrequency: updateFrequency || null,
+        hasDailySpecial: hasDailySpecial || null,
+        dailyUpdateTime: dailyUpdateTime || null,
       })
       .where(eq(customers.id, customerId));
 

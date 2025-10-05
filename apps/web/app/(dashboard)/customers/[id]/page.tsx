@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import useSWR from 'swr';
 import { Suspense, useState, useEffect } from 'react';
-import { ArrowLeft, Phone, Settings, DollarSign, Clock, Activity, Edit, Trash2, Zap, CheckCircle, XCircle, AlertCircle, Play, Pause, User, Loader2, Globe } from 'lucide-react';
+import { ArrowLeft, Phone, Settings, DollarSign, Clock, Activity, Edit, Trash2, Zap, CheckCircle, XCircle, AlertCircle, Play, Pause, User, Loader2, Globe, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
@@ -37,6 +38,12 @@ type CustomerData = {
     webhookElevenlabsStatus: string | null;
     webhookTwilioUrl: string | null;
     webhookElevenlabsUrl: string | null;
+    // Auto-Update Settings
+    updateFrequency: string | null;
+    hasDailySpecial: string | null;
+    dailyUpdateTime: string | null;
+    lastDailyHash: string | null;
+    lastUpdateDate: string | null;
     createdAt: string;
   };
   monthUsage: {
@@ -105,10 +112,15 @@ function CustomerDetails({ customerId }: { customerId: number }) {
     elevenlabsApiKey: '',
     websiteUrl: '',
     restaurantSlug: '',
-    knowledgeBaseId: ''
+    knowledgeBaseId: '',
+    updateFrequency: 'none',
+    hasDailySpecial: 'false',
+    dailyUpdateTime: ''
   });
   const [isScraping, setIsScraping] = useState(false);
   const [scrapeStatus, setScrapeStatus] = useState<{ type: 'idle' | 'success' | 'error', message?: string }>({ type: 'idle' });
+  const [isUpdatingKB, setIsUpdatingKB] = useState(false);
+  const [kbUpdateStatus, setKbUpdateStatus] = useState<{ type: 'idle' | 'success' | 'error', message?: string }>({ type: 'idle' });
   const router = useRouter();
 
   // Initialize edit data when customer data loads
@@ -123,7 +135,10 @@ function CustomerDetails({ customerId }: { customerId: number }) {
         elevenlabsApiKey: data.customer.elevenlabsApiKey || '',
         websiteUrl: data.customer.websiteUrl || '',
         restaurantSlug: data.customer.restaurantSlug || '',
-        knowledgeBaseId: data.customer.knowledgeBaseId || ''
+        knowledgeBaseId: data.customer.knowledgeBaseId || '',
+        updateFrequency: data.customer.updateFrequency || 'none',
+        hasDailySpecial: data.customer.hasDailySpecial || 'false',
+        dailyUpdateTime: data.customer.dailyUpdateTime || ''
       });
     }
   }, [data?.customer]);
@@ -229,7 +244,10 @@ function CustomerDetails({ customerId }: { customerId: number }) {
         elevenlabsApiKey: customer.elevenlabsApiKey || '',
         websiteUrl: customer.websiteUrl || '',
         restaurantSlug: customer.restaurantSlug || '',
-        knowledgeBaseId: customer.knowledgeBaseId || ''
+        knowledgeBaseId: customer.knowledgeBaseId || '',
+        updateFrequency: customer.updateFrequency || 'none',
+        hasDailySpecial: customer.hasDailySpecial || 'false',
+        dailyUpdateTime: customer.dailyUpdateTime || ''
       });
     }
     setIsEditing(!isEditing);
@@ -303,6 +321,53 @@ function CustomerDetails({ customerId }: { customerId: number }) {
       console.error('Scrape error:', error);
     } finally {
       setIsScraping(false);
+    }
+  };
+
+  const handleUpdateKB = async () => {
+    if (!customer.knowledgeBaseId) {
+      alert('Ingen Knowledge Base ID konfigurerad. Kör initial scraping först.');
+      return;
+    }
+
+    setIsUpdatingKB(true);
+    setKbUpdateStatus({ type: 'idle' });
+
+    try {
+      const response = await fetch(`/api/customers/${customerId}/update-kb`, {
+        method: 'POST',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        if (result.contentChanged) {
+          setKbUpdateStatus({
+            type: 'success',
+            message: `KB uppdaterad! Nytt dokument: ${result.documentName || 'N/A'}`
+          });
+        } else {
+          setKbUpdateStatus({
+            type: 'success',
+            message: 'Inget har ändrats - ingen uppdatering behövdes'
+          });
+        }
+        // Refresh customer data to show new hash and timestamp
+        mutate();
+      } else {
+        setKbUpdateStatus({
+          type: 'error',
+          message: result.error || 'KB-uppdatering misslyckades'
+        });
+      }
+    } catch (error) {
+      setKbUpdateStatus({
+        type: 'error',
+        message: 'Nätverksfel vid KB-uppdatering'
+      });
+      console.error('KB update error:', error);
+    } finally {
+      setIsUpdatingKB(false);
     }
   };
 
@@ -639,6 +704,155 @@ function CustomerDetails({ customerId }: { customerId: number }) {
             </div>
           </CardContent>
         </Card>
+
+      {/* Auto-Update Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <RefreshCw className="h-5 w-5" />
+            Automatiska Uppdateringar
+          </CardTitle>
+          <CardDescription>
+            Konfigurera automatisk scraping och uppdatering av Knowledge Base
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Update Frequency */}
+            <div className="space-y-2">
+              <Label htmlFor="updateFrequency">Uppdateringsfrekvens</Label>
+              {isEditing ? (
+                <Select
+                  value={editData.updateFrequency}
+                  onValueChange={(value) => handleInputChange('updateFrequency', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj frekvens" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Ingen automatisk uppdatering</SelectItem>
+                    <SelectItem value="daily">Daglig</SelectItem>
+                    <SelectItem value="weekly">Veckovis</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  value={
+                    customer.updateFrequency === 'daily' ? 'Daglig' :
+                    customer.updateFrequency === 'weekly' ? 'Veckovis' :
+                    'Ingen automatisk uppdatering'
+                  }
+                  readOnly
+                  className="bg-gray-50"
+                />
+              )}
+            </div>
+
+            {/* Has Daily Special */}
+            <div className="space-y-2">
+              <Label htmlFor="hasDailySpecial">Har dagens special</Label>
+              {isEditing ? (
+                <Select
+                  value={editData.hasDailySpecial}
+                  onValueChange={(value) => handleInputChange('hasDailySpecial', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="false">Nej</SelectItem>
+                    <SelectItem value="true">Ja</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  value={customer.hasDailySpecial === 'true' ? 'Ja' : 'Nej'}
+                  readOnly
+                  className="bg-gray-50"
+                />
+              )}
+            </div>
+
+            {/* Daily Update Time */}
+            <div className="space-y-2">
+              <Label htmlFor="dailyUpdateTime">Daglig uppdateringstid</Label>
+              <Input
+                id="dailyUpdateTime"
+                type="time"
+                value={isEditing ? editData.dailyUpdateTime : (customer.dailyUpdateTime || '')}
+                onChange={(e) => handleInputChange('dailyUpdateTime', e.target.value)}
+                readOnly={!isEditing}
+                className={isEditing ? "" : "bg-gray-50"}
+                placeholder="06:00"
+              />
+            </div>
+          </div>
+
+          {/* Last Update Status */}
+          {customer.lastUpdateDate && (
+            <div className="mt-6 pt-6 border-t">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Senaste uppdatering:</span>
+                <span className="font-medium">
+                  {new Date(customer.lastUpdateDate).toLocaleString('sv-SE')}
+                </span>
+              </div>
+              {customer.lastDailyHash && (
+                <div className="flex items-center justify-between text-sm mt-2">
+                  <span className="text-gray-600">Innehålls-hash:</span>
+                  <span className="font-mono text-xs text-gray-500">
+                    {customer.lastDailyHash.substring(0, 16)}...
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Manual Update Button */}
+          <div className="mt-6 pt-6 border-t">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                {kbUpdateStatus.type === 'success' && (
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="text-sm">{kbUpdateStatus.message}</span>
+                  </div>
+                )}
+                {kbUpdateStatus.type === 'error' && (
+                  <div className="flex items-center gap-2 text-red-600">
+                    <XCircle className="h-4 w-4" />
+                    <span className="text-sm">{kbUpdateStatus.message}</span>
+                  </div>
+                )}
+                {isUpdatingKB && (
+                  <div className="flex items-center gap-2 text-blue-600">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm">Uppdaterar Knowledge Base...</span>
+                  </div>
+                )}
+              </div>
+              <Button
+                onClick={handleUpdateKB}
+                disabled={isUpdatingKB || !customer.knowledgeBaseId || !customer.restaurantSlug}
+                className="flex items-center gap-2"
+              >
+                {isUpdatingKB ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Uppdaterar...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4" />
+                    Uppdatera KB Nu
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader>
