@@ -17,6 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ArrowLeft, Building2, Phone, Volume2, Link as LinkIcon, Save, Plus, Trash2, Globe, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import AIReceptionistLayout from '../../ai-layout';
+import { swedishToUTC, getSwedishTimeDescription } from '@/lib/utils/timezone';
 
 type Integration = {
   id: string;
@@ -117,6 +118,11 @@ function NewCustomerContent() {
     setError(null);
 
     try {
+      // Convert Swedish time to UTC before sending
+      const dailyUpdateTimeUTC = formData.dailyUpdateTime
+        ? swedishToUTC(formData.dailyUpdateTime)
+        : '';
+
       const response = await fetch('/api/customers', {
         method: 'POST',
         headers: {
@@ -135,7 +141,7 @@ function NewCustomerContent() {
           description: formData.description,
           updateFrequency: formData.updateFrequency,
           hasDailySpecial: formData.hasDailySpecial,
-          dailyUpdateTime: formData.dailyUpdateTime,
+          dailyUpdateTime: dailyUpdateTimeUTC, // Send UTC time to backend
           integrations: formData.integrations,
         }),
       });
@@ -408,15 +414,20 @@ function NewCustomerContent() {
 
             {/* Daily Update Time */}
             <div>
-              <Label htmlFor="dailyUpdateTime">Daglig uppdateringstid</Label>
+              <Label htmlFor="dailyUpdateTime">
+                Daglig uppdateringstid (svensk tid)
+              </Label>
               <Input
                 id="dailyUpdateTime"
                 type="time"
                 value={formData.dailyUpdateTime}
                 onChange={(e) => handleChange('dailyUpdateTime', e.target.value)}
-                placeholder="06:00"
+                placeholder="10:00"
                 className="mt-1"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Sparas som {getSwedishTimeDescription()}
+              </p>
             </div>
           </CardContent>
         </Card>

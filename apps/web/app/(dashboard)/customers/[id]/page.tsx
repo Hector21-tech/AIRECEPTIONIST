@@ -12,6 +12,7 @@ import { ArrowLeft, Phone, Settings, DollarSign, Clock, Activity, Edit, Trash2, 
 import Link from 'next/link';
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
+import { swedishToUTC, utcToSwedish, getSwedishTimeDescription } from '@/lib/utils/timezone';
 
 interface TranscriptTurn {
   speaker: 'agent' | 'user';
@@ -126,6 +127,11 @@ function CustomerDetails({ customerId }: { customerId: number }) {
   // Initialize edit data when customer data loads
   useEffect(() => {
     if (data?.customer) {
+      // Convert UTC time to Swedish time for display
+      const dailyUpdateTimeSwedish = data.customer.dailyUpdateTime
+        ? utcToSwedish(data.customer.dailyUpdateTime)
+        : '';
+
       setEditData({
         contactName: data.customer.contactName || '',
         contactPhone: data.customer.contactPhone || '',
@@ -138,7 +144,7 @@ function CustomerDetails({ customerId }: { customerId: number }) {
         knowledgeBaseId: data.customer.knowledgeBaseId || '',
         updateFrequency: data.customer.updateFrequency || 'none',
         hasDailySpecial: data.customer.hasDailySpecial || 'false',
-        dailyUpdateTime: data.customer.dailyUpdateTime || ''
+        dailyUpdateTime: dailyUpdateTimeSwedish // Show Swedish time in form
       });
     }
   }, [data?.customer]);
@@ -256,12 +262,22 @@ function CustomerDetails({ customerId }: { customerId: number }) {
   const handleSave = async () => {
     setIsUpdating(true);
     try {
+      // Convert Swedish time to UTC before sending
+      const dailyUpdateTimeUTC = editData.dailyUpdateTime
+        ? swedishToUTC(editData.dailyUpdateTime)
+        : editData.dailyUpdateTime;
+
+      const dataToSend = {
+        ...editData,
+        dailyUpdateTime: dailyUpdateTimeUTC // Send UTC time to backend
+      };
+
       const response = await fetch(`/api/customers/${customerId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(editData),
+        body: JSON.stringify(dataToSend),
       });
 
       if (response.ok) {
@@ -775,16 +791,21 @@ function CustomerDetails({ customerId }: { customerId: number }) {
 
             {/* Daily Update Time */}
             <div className="space-y-2">
-              <Label htmlFor="dailyUpdateTime">Daglig uppdateringstid</Label>
+              <Label htmlFor="dailyUpdateTime">
+                Daglig uppdateringstid (svensk tid)
+              </Label>
               <Input
                 id="dailyUpdateTime"
                 type="time"
-                value={isEditing ? editData.dailyUpdateTime : (customer.dailyUpdateTime || '')}
+                value={isEditing ? editData.dailyUpdateTime : (customer.dailyUpdateTime ? utcToSwedish(customer.dailyUpdateTime) : '')}
                 onChange={(e) => handleInputChange('dailyUpdateTime', e.target.value)}
                 readOnly={!isEditing}
                 className={isEditing ? "" : "bg-gray-50"}
-                placeholder="06:00"
+                placeholder="10:00"
               />
+              <p className="text-xs text-gray-500">
+                Sparas som {getSwedishTimeDescription()}
+              </p>
             </div>
           </div>
 
