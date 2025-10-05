@@ -187,6 +187,10 @@ export class ContentExtractor {
   }
 
   extractTextFromHtml(html) {
+    // KRITISK FIX: Ersätt <br> och <br /> med newlines INNAN Cheerio parsear HTML:en
+    // Annars blir "Måndag: 11:30-22:00<br />Tisdag: 11:30-22:00" → "Måndag: 11:30-22:00Tisdag: 11:30-22:00" (inget mellanrum!)
+    html = html.replace(/<br\s*\/?>/gi, '\n');
+
     const $ = cheerio.load(html);
 
     // LAYER 1: Extrahera Schema.org strukturerad data FÖRST (mest tillförlitligt!)
@@ -377,7 +381,7 @@ export class ContentExtractor {
     // Förbättrade mönster för svenska öppettider
     const hoursPatterns = [
       // Måndag: 11:30-22:00, Måndag 11.30-22.00
-      /(?:måndag|tisdag|onsdag|torsdag|fredag|lördag|söndag|mån|tis|ons|tor|fre|lör|sön)[\s\-:]*(\d{1,2}[\.:]\d{2}[\s\-–—]+\d{1,2}[\.:]\d{2})/gi,
+      /(måndag|tisdag|onsdag|torsdag|fredag|lördag|söndag|mån|tis|ons|tor|fre|lör|sön)[\s\-:]*(\d{1,2}[\.:]\d{2}[\s\-–—]+\d{1,2}[\.:]\d{2})/gi,
       // Måndag-fredag: 11:30-22:00
       /(måndag|tisdag|onsdag|torsdag|fredag|lördag|söndag|mån|tis|ons|tor|fre|lör|sön)[\s\-–—]+(måndag|tisdag|onsdag|torsdag|fredag|lördag|söndag|mån|tis|ons|tor|fre|lör|sön)[\s\-:]*(\d{1,2}[\.:]\d{2}[\s\-–—]+\d{1,2}[\.:]\d{2})/gi,
       // "Öppet: Måndag 11:30-22:00"

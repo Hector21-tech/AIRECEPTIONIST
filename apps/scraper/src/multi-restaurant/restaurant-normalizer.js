@@ -377,10 +377,20 @@ export class RestaurantNormalizer {
         }
       }
 
-      // Fallback-öppettider för restaurangkedjor
+      // ⚠️  VIKTIGT: Generera ALDRIG fejk-öppettider!
+      // Om öppettider saknas, rapportera det som ett problem istället
       if (!enhanced.hours || this.isEmptyHours(enhanced.hours)) {
-        enhanced.hours = this.generateRestaurantHours();
-        this.assumptions.push(`Genererade standardöppettider för restaurangkedja`);
+        this.errors.push(`KRITISKT: Inga öppettider hittades! Hemsidan måste scrapas manuellt eller öppettider måste anges manuellt.`);
+        // Markera alla dagar som stängda tills korrekta tider finns
+        enhanced.hours = {
+          'monday': 'closed',
+          'tuesday': 'closed',
+          'wednesday': 'closed',
+          'thursday': 'closed',
+          'friday': 'closed',
+          'saturday': 'closed',
+          'sunday': 'closed'
+        };
       }
     }
 
@@ -519,17 +529,8 @@ export class RestaurantNormalizer {
   /**
    * Generera standardöppettider för restauranger
    */
-  generateRestaurantHours() {
-    return {
-      'monday': '11:30–22:00',
-      'tuesday': '11:30–22:00',
-      'wednesday': '11:30–22:00',
-      'thursday': '11:30–22:00',
-      'friday': '11:30–23:00',
-      'saturday': '12:00–23:00',
-      'sunday': '12:00–21:00'
-    };
-  }
+  // ❌ BORTTAGEN: generateRestaurantHours() - Genererade farliga fejk-öppettider!
+  // Vi ska ALDRIG generera öppettider - om de saknas är det ett FEL som måste åtgärdas.
 
   /**
    * Validera att alla obligatoriska fält finns (anpassad för kedjor)
