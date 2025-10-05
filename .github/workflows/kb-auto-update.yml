@@ -1,0 +1,41 @@
+name: KB Auto-Update Cron
+
+on:
+  schedule:
+    # Kör varje timme vid minut 0
+    - cron: '0 * * * *'
+  workflow_dispatch:  # Tillåter manuell trigger från GitHub UI
+
+jobs:
+  update-kb:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Knowledge Base Update
+        run: |
+          response=$(curl -s -w "\n%{http_code}" \
+            -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://aireceptionist-ikkajzmq0-hector-bataks-projects.vercel.app/api/cron/update-restaurants)
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "HTTP Status: $http_code"
+          echo "Response Body:"
+          echo "$body" | jq '.' || echo "$body"
+
+          if [ "$http_code" -ne 200 ]; then
+            echo "❌ Cron job failed with status $http_code"
+            exit 1
+          fi
+
+          echo "✅ Cron job completed successfully"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 🔄 KB Auto-Update Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Triggered at: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "Endpoint: \`/api/cron/update-restaurants\`" >> $GITHUB_STEP_SUMMARY
