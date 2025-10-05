@@ -7,8 +7,17 @@ import { ElevenLabsSync } from '../src/elevenlabs-sync.js';
 
 const router = express.Router();
 
-// Database connection
-const sql = postgres(process.env.POSTGRES_URL);
+// Database connection - lazy initialization
+let sql = null;
+function getDb() {
+  if (!sql) {
+    if (!process.env.POSTGRES_URL) {
+      throw new Error('POSTGRES_URL environment variable is required');
+    }
+    sql = postgres(process.env.POSTGRES_URL);
+  }
+  return sql;
+}
 
 /**
  * Calculate SHA256 hash of content
@@ -69,7 +78,8 @@ router.get('/update-restaurants', async (req, res) => {
     const timeFilter = `${currentHour.toString().padStart(2, '0')}:00`;
 
     // Find customers that should be updated
-    const customersToUpdate = await sql`
+    const db = getDb();
+    const customersToUpdate = await db`
       SELECT * FROM customers
       WHERE (
         (update_frequency = 'daily' AND daily_update_time = ${timeFilter})
@@ -163,7 +173,7 @@ router.get('/update-restaurants', async (req, res) => {
         );
 
         // Step 4: Update database
-        await sql`
+        await db`
           UPDATE customers
           SET
             last_daily_hash = ${newHash},
@@ -216,7 +226,8 @@ router.get('/update-restaurants', async (req, res) => {
 
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: error?.message || error?.toString() || 'Unknown error occurred',
+      stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined,
       duration: `${Date.now() - startTime}ms`
     });
   }
