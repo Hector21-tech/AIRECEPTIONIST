@@ -16,6 +16,7 @@ jobs:
           response=$(curl -s -w "\n%{http_code}" \
             -X GET \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "x-vercel-protection-bypass: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}" \
             https://aireceptionist-ikkajzmq0-hector-bataks-projects.vercel.app/api/cron/update-restaurants)
 
           http_code=$(echo "$response" | tail -n1)
