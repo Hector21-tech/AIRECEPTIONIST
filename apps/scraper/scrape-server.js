@@ -11,6 +11,7 @@ import { ElevenLabsSync } from './src/elevenlabs-sync.js';
 import { convertKnowledgeToVoiceAI } from './src/knowledge-converter.js';
 import dagensRouter from './routes/dagens.js';
 import elevenlabsAddDocumentRouter from './routes/elevenlabs-add-document.js';
+import cronUpdateRouter from './routes/cron-update.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +26,7 @@ app.use(express.json());
 // Mount new routes
 app.use('/api/restaurant', dagensRouter);
 app.use('/api/elevenlabs', elevenlabsAddDocumentRouter);
+app.use('/api/cron', cronUpdateRouter);
 
 /**
  * POST /api/scrape-url

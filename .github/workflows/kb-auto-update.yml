@@ -15,7 +15,7 @@ jobs:
         run: |
           response=$(curl -L -s -w "\n%{http_code}" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            "https://aireceptionist-ikkajzmq0-hector-bataks-projects.vercel.app/api/cron/update-restaurants")
+            "https://torstens-voice-ai-scraper-production.up.railway.app/api/cron/update-restaurants")
 
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | sed '$d')
